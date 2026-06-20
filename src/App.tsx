@@ -256,48 +256,69 @@ export default function App() {
 
   // Load saved trips from localStorage, fallback to Lake Toba defaults
   const [savedTrips, setSavedTrips] = useState<SavedTrip[]>(() => {
-    const cached = localStorage.getItem('jelajahtoba_saved_trips');
-    if (cached) {
-      try {
-        return JSON.parse(cached);
-      } catch (err) {
-        console.error('Error loading saved trips from cache', err);
+    try {
+      const cached = localStorage.getItem('wanderlust_saved_trips');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
       }
+    } catch (err) {
+      console.error('Error loading saved trips from cache', err);
     }
     return [DEFAULT_LAKE_TOBA_TRIP];
   });
 
   const [activeTripId, setActiveTripId] = useState<string>(() => {
-    const cached = localStorage.getItem('jelajahtoba_active_trip_id');
-    if (cached) return cached;
+    try {
+      const cached = localStorage.getItem('wanderlust_active_trip_id');
+      if (cached) return cached;
+    } catch (err) {
+      console.error('Error loading active trip ID', err);
+    }
     return DEFAULT_LAKE_TOBA_TRIP.id;
   });
 
   // Current selected active trip detail
-  const activeTrip = savedTrips.find((t) => t.id === activeTripId) || savedTrips[0] || DEFAULT_LAKE_TOBA_TRIP;
+  const activeTrip = (Array.isArray(savedTrips) ? savedTrips : []).find((t) => t && t.id === activeTripId) || (Array.isArray(savedTrips) && savedTrips[0]) || DEFAULT_LAKE_TOBA_TRIP;
 
   // Active day filter for timeline
   const [activeDay, setActiveDay] = useState<number>(1);
 
   // Transport Mode for Cost Estimation: 'pribadi' | 'sewa' | 'sendiri'
   const [transportMode, setTransportMode] = useState<'pribadi' | 'sewa' | 'sendiri'>(() => {
-    const cached = localStorage.getItem('jelajahtoba_transport_mode');
-    return (cached as 'pribadi' | 'sewa' | 'sendiri') || 'sendiri';
+    try {
+      const cached = localStorage.getItem('wanderlust_transport_mode');
+      if (cached === 'pribadi' || cached === 'sewa' || cached === 'sendiri') {
+        return cached;
+      }
+    } catch (err) {
+      console.error('Error loading transport mode', err);
+    }
+    return 'sendiri';
   });
 
   useEffect(() => {
-    localStorage.setItem('jelajahtoba_transport_mode', transportMode);
+    try {
+      localStorage.setItem('wanderlust_transport_mode', transportMode);
+    } catch (err) {
+      console.error('Error saving transport mode', err);
+    }
   }, [transportMode]);
 
   // Reviews State
   const [reviews, setReviews] = useState<Review[]>(() => {
-    const cached = localStorage.getItem('jelajahtoba_reviews');
-    if (cached) {
-      try {
-        return JSON.parse(cached);
-      } catch (err) {
-        console.error('Error parsing cached reviews', err);
+    try {
+      const cached = localStorage.getItem('wanderlust_reviews');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed)) {
+          return parsed;
+        }
       }
+    } catch (err) {
+      console.error('Error parsing cached reviews', err);
     }
     return INITIAL_REVIEWS;
   });
@@ -309,13 +330,13 @@ export default function App() {
 
   // Completed stops tracking (tripId-day-stopIndex)
   const [checkedStops, setCheckedStops] = useState<Record<string, boolean>>(() => {
-    const cached = localStorage.getItem('jelajahtoba_checked_stops');
+    const cached = localStorage.getItem('wanderlust_checked_stops');
     return cached ? JSON.parse(cached) : {};
   });
 
   // User notes tracking (tripId-day-stopIndex)
   const [stopNotes, setStopNotes] = useState<Record<string, string>>(() => {
-    const cached = localStorage.getItem('jelajahtoba_stop_notes');
+    const cached = localStorage.getItem('wanderlust_stop_notes');
     return cached ? JSON.parse(cached) : {};
   });
 
@@ -343,20 +364,20 @@ export default function App() {
 
   // Persist items
   useEffect(() => {
-    localStorage.setItem('jelajahtoba_saved_trips', JSON.stringify(savedTrips));
-    localStorage.setItem('jelajahtoba_active_trip_id', activeTripId);
+    localStorage.setItem('wanderlust_saved_trips', JSON.stringify(savedTrips));
+    localStorage.setItem('wanderlust_active_trip_id', activeTripId);
   }, [savedTrips, activeTripId]);
 
   useEffect(() => {
-    localStorage.setItem('jelajahtoba_reviews', JSON.stringify(reviews));
+    localStorage.setItem('wanderlust_reviews', JSON.stringify(reviews));
   }, [reviews]);
 
   useEffect(() => {
-    localStorage.setItem('jelajahtoba_checked_stops', JSON.stringify(checkedStops));
+    localStorage.setItem('wanderlust_checked_stops', JSON.stringify(checkedStops));
   }, [checkedStops]);
 
   useEffect(() => {
-    localStorage.setItem('jelajahtoba_stop_notes', JSON.stringify(stopNotes));
+    localStorage.setItem('wanderlust_stop_notes', JSON.stringify(stopNotes));
   }, [stopNotes]);
 
   // Adjust current active day if active trip or days counts changes
@@ -585,7 +606,7 @@ export default function App() {
   };
 
   const getItineraryText = () => {
-    let text = `✈️ JelajahTOBA Smart Plan: ${activeTrip.destination}\n`;
+    let text = `✈️ Wanderlust.ai Smart Plan: ${activeTrip.destination}\n`;
     text += `📅 Style: ${activeTrip.travelStyle} | Duration: ${activeTrip.duration}\n\n`;
     activeTrip.days.forEach((dayObj) => {
       text += `📍 ${dayObj.title}\n`;
