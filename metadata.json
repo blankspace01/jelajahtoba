@@ -1,0 +1,6 @@
+{
+  "name": "JelajahTOBA Trip Planner",
+  "description": "A sleek, AI-powered travel itinerary planner with interactive day-by-day timeline visualizations, custom configurations (style, destination, duration), weather forecast integration, and persistent syncing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
