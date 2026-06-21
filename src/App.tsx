@@ -74,6 +74,278 @@ interface Review {
   createdAt: number;
 }
 
+const getOfflineTobaItinerary = (durationStr: string, style: string): Day[] => {
+  const daysCount = durationStr.includes('2 Days') ? 2 : durationStr.includes('5 Days') ? 5 : 3;
+  const days: Day[] = [];
+  
+  for (let d = 1; d <= daysCount; d++) {
+    let dayTitle = '';
+    let stops: Stop[] = [];
+    
+    if (d === 1) {
+      dayTitle = `Day 1: Keindahan Alam & Kedatangan Toba (${style})`;
+      stops = [
+        {
+          time: '09:00 AM',
+          name: 'Penjemputan Bandara Silangit (DTB)',
+          description: 'Selamat datang di Toba! Bertemu dengan tim lokal JelajahTOBA dan berkendara santai menuju kawasan Balige.',
+          tags: ['Kedatangan', 'Transportasi Nyaman'],
+          category: 'Transport',
+          duration: '1 jam',
+          ticketPrice: 0,
+          mealPrice: 0,
+          transportPrice: 150000,
+          otherPrice: 0
+        },
+        {
+          time: '11:00 AM',
+          name: 'Huta Ginjang View Point',
+          description: 'Pemandangan spektakuler kaldera Toba dari ketinggian. Tempat terbaik berswafoto dan menikmati kedai kopi lokal.',
+          tags: ['Spot Foto', 'Udara Sejuk'],
+          category: 'Photo Spot',
+          duration: '1.5 jam',
+          ticketPrice: 15000,
+          mealPrice: 40000,
+          transportPrice: 0,
+          otherPrice: 10000
+        },
+        {
+          time: '02:00 PM',
+          name: style === 'Adventure' ? 'Camping Ground Caldera Sibisa' : 'The Caldera Nomadic Escape',
+          description: style === 'Adventure' 
+            ? 'Petualangan menyusuri trek hutan pinus asri dan area kemah berlatar bukit eksotis.' 
+            : 'Menikmati area glamping dan santai bersama keluarga di dekat taman bukit Sibisa.',
+          tags: [style === 'Adventure' ? 'Jalur Alam' : 'Santai', 'Instagramable'],
+          category: style === 'Adventure' ? 'Adventure' : 'Outdoor',
+          duration: '2 jam',
+          ticketPrice: 20000,
+          mealPrice: 0,
+          transportPrice: 0,
+          otherPrice: 15000
+        },
+        {
+          time: '05:00 PM',
+          name: 'Sunset Bukit Tarabunga',
+          description: 'Nikmati keindahan matahari berkilau keemasan yang tenggelam di cakrawala panorama garis laut Balige.',
+          tags: ['Sunset Emas', 'Menenangkan'],
+          category: 'Photo Spot',
+          duration: '1.5 jam',
+          ticketPrice: 10000,
+          mealPrice: 40000,
+          transportPrice: 0,
+          otherPrice: 0
+        }
+      ];
+    } else if (d === 2) {
+      dayTitle = `Day 2: Eksplorasi Budaya & Samosir Heritage (${style})`;
+      stops = [
+        {
+          time: '08:00 AM',
+          name: 'Penyeberangan Feri Ajibata ke Tomok',
+          description: 'Nikmati hembusan angin danau Toba yang segar selama 45 menit penyeberangan feri menuju pulau Samosir.',
+          tags: ['Kapal Feri', 'Danau Luas'],
+          category: 'Transport',
+          duration: '1 jam',
+          ticketPrice: 15000,
+          mealPrice: 0,
+          transportPrice: 25000,
+          otherPrice: 0
+        },
+        {
+          time: '10:00 AM',
+          name: 'Desa Adat Batak Tomok & Sigale-Gale',
+          description: 'Mempelajari sejarah makam batu Raja Sidabutar dan berinteraksi langsung mengikuti tarian boneka mistis Sigale-gale.',
+          tags: ['Edukasi Budaya', 'Sejarah Kuno'],
+          category: 'Culture',
+          duration: '2 jam',
+          ticketPrice: 15000,
+          mealPrice: 0,
+          transportPrice: 0,
+          otherPrice: 30000
+        },
+        {
+          time: '01:00 PM',
+          name: style === 'Foodie' ? 'Makan Siang Ikan Mas Arsik Samosir' : 'Pantai Pasir Putih Batu Hoda',
+          description: style === 'Foodie' 
+            ? 'Menyantap makan siang ikan mas Arsik bumbu andaliman khas Batak autentik langsung di pinggir danau Samosir.'
+            : 'Bermain air atau sekadar bersantai di pantai Batu Hoda yang tenang terhampar dengan pasir berkarang megah.',
+          tags: [style === 'Foodie' ? 'Kuliner Autentik' : 'Santai Pantai', 'Pemandangan Cantik'],
+          category: style === 'Foodie' ? 'Restaurant' : 'Sights',
+          duration: '2.5 jam',
+          ticketPrice: 20000,
+          mealPrice: 80000,
+          transportPrice: 0,
+          otherPrice: 10000
+        },
+        {
+          time: '04:30 PM',
+          name: 'Bukit Beta Holbung (Samosir)',
+          description: 'Duduk di rerumputan hijau Bukit Beta, melihat formasi bukit bergelombang yang dijuluki bukit Teletubbies.',
+          tags: ['Padang Rumput', 'Trekking Ringan'],
+          category: 'Outdoor',
+          duration: '1.5 jam',
+          ticketPrice: 10000,
+          mealPrice: 25000,
+          transportPrice: 0,
+          otherPrice: 10000
+        }
+      ];
+    } else if (d === 3) {
+      dayTitle = 'Day 3: Air Terjun Sipiso-Piso & Bukit Indah';
+      stops = [
+        {
+          time: '08:30 AM',
+          name: 'Air Terjun Sipiso-Piso',
+          description: 'Menyaksikan air terjun tertinggi di Indonesia yang memancarkan air deras setinggi 120 meter memotong tebing hijau.',
+          tags: ['Keajaiban Alam', 'Fotografi'],
+          category: 'Outdoor',
+          duration: '2.5 jam',
+          ticketPrice: 20000,
+          mealPrice: 0,
+          transportPrice: 0,
+          otherPrice: 20000
+        },
+        {
+          time: '12:00 PM',
+          name: 'Makan Siang & Spot Foto Bukit Simarjarunjung',
+          description: 'Tempat makan dengan aneka spot foto gardu pandang gantung yang luar biasa mengarah ke seluruh area danau Toba.',
+          tags: ['Makan Siang', 'Spot Gantung'],
+          category: 'Restaurant',
+          duration: '2 jam',
+          ticketPrice: 15000,
+          mealPrice: 75000,
+          transportPrice: 0,
+          otherPrice: 15000
+        },
+        {
+          time: '03:30 PM',
+          name: 'Taman Simalem Resort Lookout',
+          description: 'Menikmati kebun teh organik dan sudut pandang eksklusif dari Simalem yang sangat sejuk dan berkabut tipis.',
+          tags: ['Perkebunan Teh', 'Eksklusif'],
+          category: 'Sights',
+          duration: '2 jam',
+          ticketPrice: 50000,
+          mealPrice: 30000,
+          transportPrice: 0,
+          otherPrice: 10000
+        }
+      ];
+    } else if (d === 4) {
+      dayTitle = 'Day 4: Bukit Holbung Trekking & Air Panas';
+      stops = [
+        {
+          time: '08:00 AM',
+          name: 'Trekking Puncak Bukit Holbung 8',
+          description: 'Petualangan mendaki bukit delapan sabana berangin sepoi dengan formasi lekukan lereng hijau spektakuler yang menakjubkan.',
+          tags: ['Trekking Sehat', 'Pemandangan Kolosal'],
+          category: 'Adventure',
+          duration: '3 jam',
+          ticketPrice: 15000,
+          mealPrice: 20000,
+          transportPrice: 0,
+          otherPrice: 10000
+        },
+        {
+          time: '11:30 AM',
+          name: 'Air Terjun Efrata',
+          description: 'Berendam air pegunungan alami yang menyegarkan di air terjun megah tersembunyi dekat desa Harian Boho.',
+          tags: ['Berenang Sehat', 'Hutan Alami'],
+          category: 'Outdoor',
+          duration: '1.5 jam',
+          ticketPrice: 10000,
+          mealPrice: 0,
+          transportPrice: 0,
+          otherPrice: 5000
+        },
+        {
+          time: '01:30 PM',
+          name: 'Kuliner Lokal Lapo Mie Gomak',
+          description: 'Makan siang santai mencicipi mi gomak bersantan dan andaliman pedas menyengat yang sangat khas Sumatra Utara.',
+          tags: ['Foodie Lokal', 'Makan Puas'],
+          category: 'Restaurant',
+          duration: '1.5 jam',
+          ticketPrice: 0,
+          mealPrice: 40000,
+          transportPrice: 0,
+          otherPrice: 0
+        },
+        {
+          time: '03:30 PM',
+          name: 'Pemandian Air Panas Aek Rangat Pangururan',
+          description: 'Relaksasi otot setelah mendaki dengan mandi air belerang hangat alami langsung dari kaki Gunung Pusuk Buhit.',
+          tags: ['Relaksasi Alami', 'Kolam Air Belerang'],
+          category: 'Relaxation',
+          duration: '2 jam',
+          ticketPrice: 20000,
+          mealPrice: 15000,
+          transportPrice: 0,
+          otherPrice: 10000
+        }
+      ];
+    } else if (d === 5) {
+      dayTitle = 'Day 5: Museum Budaya & Belanja Oleh-oleh';
+      stops = [
+        {
+          time: '09:00 AM',
+          name: 'Museum Batak TB Silalahi Center',
+          description: 'Bahan sejarah terlengkap kebudayaan Batak modern dan replika perkampungan rumah adat ruma bolon yang megah.',
+          tags: ['Heritage Center', 'Sangat Edukatif'],
+          category: 'Culture',
+          duration: '2.5 jam',
+          ticketPrice: 25000,
+          mealPrice: 0,
+          transportPrice: 0,
+          otherPrice: 15000
+        },
+        {
+          time: '12:00 PM',
+          name: 'Pantai Pasir Putih Bulbul Balige',
+          description: 'Pantai danau Toba berpasir putih luas. Sempurna untuk makan kelapa muda segar dan bersantai di pondok bambu.',
+          tags: ['Relaksasi Lunak', 'Danau Hangat'],
+          category: 'Relaxation',
+          duration: '2 jam',
+          ticketPrice: 10000,
+          mealPrice: 50000,
+          transportPrice: 0,
+          otherPrice: 15000
+        },
+        {
+          time: '03:00 PM',
+          name: 'Pusat Kerajinan Ulos & Souvenir Balige',
+          description: 'Berburu oleh-oleh khas songket/ulos tenun tangan langsung dari perajin asli sebagai kenangan berharga pulang ke rumah.',
+          tags: ['Belanja Ulos', 'Cendramata'],
+          category: 'Culture',
+          duration: '1.5 jam',
+          ticketPrice: 0,
+          mealPrice: 0,
+          transportPrice: 0,
+          otherPrice: 80000
+        },
+        {
+          time: '05:00 PM',
+          name: 'Antar Bandara Silangit (DTB)',
+          description: 'Perjalanan berakhir dengan kenangan manis dari bumi Danau Toba yang memanjakan jiwa dan raga. Sampai jumpa kembali!',
+          tags: ['Kepulangan', 'Kenangan Manis'],
+          category: 'Transport',
+          duration: '1 jam',
+          ticketPrice: 0,
+          mealPrice: 0,
+          transportPrice: 150000,
+          otherPrice: 0
+        }
+      ];
+    }
+    
+    days.push({
+      day: d,
+      title: dayTitle,
+      stops: stops
+    });
+  }
+
+  return days;
+};
+
 const DEFAULT_LAKE_TOBA_TRIP: SavedTrip = {
   id: 'default-toba-adventure',
   destination: 'Lake Toba, North Sumatra',
@@ -396,45 +668,25 @@ export default function App() {
     }
   }, [activeTripId]);
 
-  // Call server APIs for rich content generation
+  // Offline content generator for instant response
   const handleGenerateItinerary = async () => {
     setLoading(true);
     setSyncState('saving');
+    // Brief setTimeout to give a smooth transition effect
+    await new Promise((resolve) => setTimeout(resolve, 300));
     try {
-      const response = await fetch('/api/itinerary/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          destination,
-          duration: selectedDuration,
-          travelStyle: selectedStyle
-        })
-      });
-
-      if (!response.ok) throw new Error('Failed to generate');
-      const daysData: Day[] = await response.json();
-
-      // Fetch dynamic weather prediction
-      const weatherRes = await fetch('/api/weather', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ destination })
-      });
+      const daysData = getOfflineTobaItinerary(selectedDuration, selectedStyle);
 
       let weatherData: Weather = {
         temp: 24,
-        condition: 'Great conditions for exploring.',
-        forecast: 'Mild with clear horizons'
+        condition: 'Sangat prima untuk berwisata keliling Danau Toba.',
+        forecast: 'Cerah berawan dengan hembusan angin pegunungan'
       };
-
-      if (weatherRes.ok) {
-        weatherData = await weatherRes.json();
-      }
 
       const newTripId = `trip-${Date.now()}`;
       const newTrip: SavedTrip = {
         id: newTripId,
-        destination,
+        destination: destination || 'Lake Toba, North Sumatra',
         duration: selectedDuration,
         travelStyle: selectedStyle,
         days: daysData,
@@ -452,6 +704,40 @@ export default function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Redirection to WhatsApp for trip booking with dynamic itinerary details
+  const handleBookOnWhatsApp = () => {
+    const phoneNumber = "6285173160652";
+    const dest = activeTrip.destination || 'Lake Toba, North Sumatra';
+    const duration = activeTrip.duration || selectedDuration;
+    const style = activeTrip.travelStyle || selectedStyle;
+    
+    let transportLabel = "Pribadi/Jalan Sendiri";
+    if (transportMode === 'sewa') transportLabel = "Sewa Mobil & Sopir";
+    if (transportMode === 'pribadi') transportLabel = "Kendaraan Pribadi";
+
+    let messageText = `Halo JelajahTOBA! 🏝️\n\nSaya ingin memesan paket perjalanan ke Danau Toba dengan rincian berikut:\n\n`;
+    messageText += `📍 *Destinasi*: ${dest}\n`;
+    messageText += `📅 *Durasi*: ${duration}\n`;
+    messageText += `🎨 *Gaya Perjalanan*: ${style}\n`;
+    messageText += `🚗 *Layanan Transportasi*: ${transportLabel}\n\n`;
+
+    if (activeTrip && activeTrip.days && activeTrip.days.length > 0) {
+      messageText += `*Rencana Perjalanan (Itinerary)*:\n`;
+      activeTrip.days.forEach((day: Day) => {
+        messageText += `\n*Hari ${day.day}*:\n`;
+        day.stops.forEach((stop: Stop) => {
+          messageText += ` - [${stop.time}] ${stop.name} (${stop.duration})\n`;
+        });
+      });
+    }
+
+    messageText += `\nMohon diinfokan ketersediaan kuota, rincian biaya lengkap, serta instruksi pendaftaran lebih lanjut. Terima kasih banyak! 🙏✨`;
+
+    const encodedText = encodeURIComponent(messageText);
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedText}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   // Add custom review
@@ -743,7 +1029,7 @@ export default function App() {
               <div className="max-w-4xl mx-auto">
                 <span className="text-emerald-700 font-extrabold tracking-widest text-[10px] uppercase bg-emerald-100/80 border border-emerald-200/50 px-4 py-1.5 rounded-full inline-flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping"></span>
-                  Destinasi Populer Sumatra 2026
+                  Destinasi Populer di Danau Toba
                 </span>
                 <h1 className="text-4xl md:text-6xl font-black text-slate-900 mt-6 leading-tight tracking-tight">
                   Temukan Surga Tersembunyi di <span className="text-emerald-600 underline decoration-wavy decoration-emerald-500/30">TOBA</span>
@@ -967,7 +1253,7 @@ export default function App() {
               <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
                 <div className="overflow-hidden aspect-video relative">
                   <img
-                    src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1173&auto=format&fit=crop"
+                    src="https://image.danautoba.co.id/2023/08/Cantiknya-Pantai-Batu-Hoda-Samosir-Bikin-Banyak-Orang-Jatuh-Hati.webp"
                     className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
                     referrerPolicy="no-referrer"
                     alt="Batu Hoda White Sand Beach"
@@ -984,7 +1270,7 @@ export default function App() {
               <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
                 <div className="overflow-hidden aspect-video relative">
                   <img
-                    src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=1169&auto=format&fit=crop"
+                    src="https://img.idxchannel.com/media/700/images/idx/2024/06/27/damri_danau_toba.jpg"
                     className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
                     referrerPolicy="no-referrer"
                     alt="Transport Tour"
@@ -994,6 +1280,132 @@ export default function App() {
                   <h3 className="font-extrabold text-slate-800 text-sm">Transportasi Keliling Samosir</h3>
                   <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
                     Keliling pulau vulkanik melewati tebing berkelok dan sawah hijau batak yang terbentang luas bagai permadani alam.
+                  </p>
+                </div>
+              </div>
+
+              {/* TRENDING 1: Air Terjun Sipiso-Piso */}
+              <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group relative">
+                <div className="absolute top-3 right-3 z-10 bg-rose-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider animate-pulse">
+                  🔥 Trending
+                </div>
+                <div className="overflow-hidden aspect-video relative">
+                  <img
+                    src="https://images.unsplash.com/photo-1626696445855-5f1f90db7ae8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
+                    referrerPolicy="no-referrer"
+                    alt="Air Terjun Sipiso-Piso"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-1.5">Air Terjun Sipiso-Piso</h3>
+                  <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
+                    Air terjun dengan pancuran air setinggi 120 meter memotong jurang tebing sempit pinus hijau yang sangat megah dan ikonik dekat Tongging.
+                  </p>
+                </div>
+              </div>
+
+              {/* TRENDING 2: Bukit Sibea-Bea */}
+              <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group relative">
+                <div className="absolute top-3 right-3 z-10 bg-rose-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider animate-pulse">
+                  🔥 Trending
+                </div>
+                <div className="overflow-hidden aspect-video relative">
+                  <img
+                    src="https://woni.sklmb.co/api/media/uploads/e29d565f-51e1-483c-87fc-87b56c4272c4.jpg"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
+                    referrerPolicy="no-referrer"
+                    alt="Bukit Sibea-Bea"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-extrabold text-slate-800 text-sm">Bukit Sibea-Bea & Patung Kristus</h3>
+                  <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
+                    Dikenal dengan jalan kelok ganda berlatar air biru jernih dan patung ikonik baru yang menjulang gagah menawarkan pemandangan magis.
+                  </p>
+                </div>
+              </div>
+
+              {/* TRENDING 3: Bukit Holbung */}
+              <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group relative">
+                <div className="absolute top-3 right-3 z-10 bg-rose-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider animate-pulse">
+                  🔥 Trending
+                </div>
+                <div className="overflow-hidden aspect-video relative">
+                  <img
+                    src="https://images.unsplash.com/photo-1693341195831-742a7b6f11ee?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
+                    referrerPolicy="no-referrer"
+                    alt="Bukit Holbung"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-extrabold text-slate-800 text-sm">Bukit Holbung (Bukit Teletubbies)</h3>
+                  <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
+                    Tebing berumput sabana hijau dengan spot swafoto dan area perkemahan puncak paling tren untuk melihat matahari terbit eksotis.
+                  </p>
+                </div>
+              </div>
+
+              {/* TRENDING 4: Huta Ginjang */}
+              <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group relative">
+                <div className="absolute top-3 right-3 z-10 bg-rose-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider animate-pulse">
+                  🔥 Trending
+                </div>
+                <div className="overflow-hidden aspect-video relative">
+                  <img
+                    src="https://calderatobageopark.org/wp-content/uploads/2025/06/Hutaginjang_5-scaled.jpg"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
+                    referrerPolicy="no-referrer"
+                    alt="Huta Ginjang Viewpoint"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-extrabold text-slate-800 text-sm">Huta Ginjang Skyline View</h3>
+                  <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
+                    Gardu pandang tertinggi di Kabupaten Tapanuli Utara untuk menikmati seluruh bentang alam Danau Toba serta olahraga paralayang.
+                  </p>
+                </div>
+              </div>
+
+              {/* TRENDING 5: Air Terjun Efrata */}
+              <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group relative">
+                <div className="absolute top-3 right-3 z-10 bg-rose-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider animate-pulse">
+                  🔥 Trending
+                </div>
+                <div className="overflow-hidden aspect-video relative">
+                  <img
+                    src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0b/15/19/41/efrata-waterfall-samosir.jpg?w=1200&h=-1&s=1"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
+                    referrerPolicy="no-referrer"
+                    alt="Air Terjun Efrata"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-extrabold text-slate-800 text-sm">Air Terjun Efrata</h3>
+                  <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
+                    Aliran air jernih melebar eksotik bagai tirai putih terhampar indah, dikelilingi hijaunya perbukitan desa Harian Boho yang asri.
+                  </p>
+                </div>
+              </div>
+
+              {/* TRENDING 6: Bukit Indah Simarjarunjung */}
+              <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group relative">
+                <div className="absolute top-3 right-3 z-10 bg-rose-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider animate-pulse">
+                  🔥 Trending
+                </div>
+                <div className="overflow-hidden aspect-video relative font-sans">
+                  <img
+                    src="https://static.promediateknologi.id/crop/0x235:1080x1072/1200x0/webp/photo/p1/1052/2024/03/27/Snapinstaapp_19984549_114480129187899_4295859502441299968_n_1080-2698099288.jpg"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
+                    referrerPolicy="no-referrer"
+                    alt="Bukit Indah Simarjarunjung"
+                  />
+                </div>
+                <div className="p-4">
+                  <h3 className="font-extrabold text-slate-800 text-sm">Bukit Indah Simarjarunjung</h3>
+                  <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
+                    Spot gardu pandang terfavorit dengan berbagai wahana foto, rumah pohon, balon udara, dan ayunan langit dengan latar kaldera megah.
                   </p>
                 </div>
               </div>
@@ -1042,7 +1454,27 @@ export default function App() {
                       </span>
                       <select
                         value={selectedDuration}
-                        onChange={(e) => setSelectedDuration(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setSelectedDuration(val);
+                          
+                          // Immediately generate offline itinerary and update active trip
+                          const offlineDays = getOfflineTobaItinerary(val, selectedStyle);
+                          setSavedTrips((prev) => {
+                            return prev.map((trip) => {
+                              if (trip.id === activeTripId) {
+                                return {
+                                  ...trip,
+                                  duration: val,
+                                  days: offlineDays,
+                                  travelStyle: selectedStyle,
+                                  destination: destination || 'Lake Toba, North Sumatra'
+                                };
+                              }
+                              return trip;
+                            });
+                          });
+                        }}
                         className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-slate-800 cursor-pointer"
                       >
                         <option>2 Days, 1 Night</option>
@@ -1060,7 +1492,25 @@ export default function App() {
                         <button
                           type="button"
                           key={style}
-                          onClick={() => setSelectedStyle(style)}
+                          onClick={() => {
+                            setSelectedStyle(style);
+                            
+                            // Immediately generate offline itinerary and update active trip
+                            const offlineDays = getOfflineTobaItinerary(selectedDuration, style);
+                            setSavedTrips((prev) => {
+                              return prev.map((trip) => {
+                                if (trip.id === activeTripId) {
+                                  return {
+                                    ...trip,
+                                    travelStyle: style,
+                                    days: offlineDays,
+                                    destination: destination || 'Lake Toba, North Sumatra'
+                                  };
+                                }
+                                return trip;
+                              });
+                            });
+                          }}
                           className={`py-2 text-[11px] font-bold rounded-lg border transition-all cursor-pointer ${
                             selectedStyle === style
                               ? 'bg-emerald-50 text-emerald-800 border-emerald-300 shadow-xs'
@@ -1078,23 +1528,13 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Regenerate Itinerary Button */}
+                {/* Order/Book on WhatsApp Button */}
                 <button
-                  onClick={handleGenerateItinerary}
-                  disabled={loading}
-                  className="w-full mt-6 bg-slate-900 hover:bg-slate-850 text-white py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer disabled:opacity-50"
+                  onClick={handleBookOnWhatsApp}
+                  className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
                 >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
-                      Generasi Menit-demi-Menit...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                      Racik Trip Kamu Lewat AI
-                    </>
-                  )}
+                  <span className="text-sm">💬</span>
+                  Pesan Sekarang
                 </button>
               </div>
 
