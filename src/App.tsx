@@ -28,7 +28,9 @@ import {
   Star,
   Layers,
   ArrowRight,
-  HeartHandshake
+  HeartHandshake,
+  Search,
+  User
 } from 'lucide-react';
 
 interface Stop {
@@ -967,55 +969,103 @@ export default function App() {
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 font-sans text-slate-900 antialiased">
       
-      {/* 1. NAVBAR - High-quality glassmorphism navigation */}
-      <nav className="fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md z-40 border-b border-slate-150 transition-all duration-300">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      {/* 1. NAVBAR - High-quality dynamic glassmorphism navigation */}
+      <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
+        activeTab === 'beranda' 
+          ? 'bg-black/25 backdrop-blur-md text-white border-b border-white/10' 
+          : 'bg-white/90 backdrop-blur-md text-slate-800 border-b border-slate-150 shadow-xs'
+      }`}>
+        <div className="max-w-7xl mx-auto px-6 md:px-12 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-emerald-600 rounded-lg flex items-center justify-center shadow-md shadow-emerald-600/10">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-              </svg>
-            </div>
+            {activeTab !== 'beranda' && (
+              <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center shadow-md shadow-emerald-600/10">
+                <svg className="w-4.5 h-4.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+              </div>
+            )}
             <button 
               onClick={() => setActiveTab('beranda')}
-              className="text-2xl font-black text-slate-900 tracking-wide hover:opacity-90 outline-none"
+              className={`text-xl font-black tracking-widest uppercase transition-all outline-none ${
+                activeTab === 'beranda' ? 'text-white font-sans' : 'text-slate-900 tracking-normal text-lg'
+              }`}
             >
-              Jelajah<span className="text-emerald-600">TOBA.</span>
+              {activeTab === 'beranda' ? (
+                <span>Jelajah<span className="text-emerald-400">TOBA</span></span>
+              ) : (
+                <>Jelajah<span className="text-emerald-600">TOBA.</span></>
+              )}
             </button>
           </div>
 
-          <div className="flex items-center space-x-6 text-sm font-semibold text-slate-600">
+          <div className="flex items-center space-x-6 md:space-x-8 text-sm font-semibold">
             <button
               onClick={() => setActiveTab('beranda')}
-              className={`hover:text-emerald-700 transition-all outline-none ${activeTab === 'beranda' ? 'text-emerald-600 font-bold' : ''}`}
+              className={`transition-all outline-none relative py-1.5 cursor-pointer ${
+                activeTab === 'beranda' 
+                  ? 'text-white hover:opacity-100' 
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
             >
-              Home
+              Explore
+              {activeTab === 'beranda' && (
+                <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-white rounded-full"></span>
+              )}
             </button>
             <button
               onClick={() => setActiveTab('galeri')}
-              className={`hover:text-emerald-700 transition-all outline-none ${activeTab === 'galeri' ? 'text-emerald-600 font-bold' : ''}`}
+              className={`transition-all outline-none relative py-1.5 cursor-pointer ${
+                activeTab === 'beranda'
+                  ? 'text-white/70 hover:text-white'
+                  : (activeTab === 'galeri' ? 'text-emerald-600 font-bold' : 'text-slate-600 hover:text-slate-950')
+              }`}
             >
-              Galeri
+              Discover
+              {activeTab === 'galeri' && (
+                <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-emerald-600 rounded-full"></span>
+              )}
             </button>
             <button
               onClick={() => setActiveTab('planner')}
-              className={`bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-700 px-3 py-1.5 rounded-lg transition-all outline-none flex items-center gap-1 ${activeTab === 'planner' ? 'bg-emerald-600 text-white hover:bg-emerald-700 hover:text-white font-bold' : ''}`}
+              className={`transition-all outline-none relative py-1.5 cursor-pointer ${
+                activeTab === 'beranda'
+                  ? 'text-white/70 hover:text-white'
+                  : (activeTab === 'planner' ? 'text-emerald-600 font-bold' : 'text-slate-600 hover:text-slate-950')
+              }`}
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              Planner
+              Tour Package
+              {activeTab === 'planner' && (
+                <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-emerald-600 rounded-full"></span>
+              )}
             </button>
             <button
               onClick={() => setActiveTab('ulasan')}
-              className={`hover:text-emerald-700 transition-all outline-none ${activeTab === 'ulasan' ? 'text-emerald-600 font-bold' : ''}`}
+              className={`transition-all outline-none relative py-1.5 cursor-pointer ${
+                activeTab === 'beranda'
+                  ? 'text-white/70 hover:text-white'
+                  : (activeTab === 'ulasan' ? 'text-emerald-600 font-bold' : 'text-slate-600 hover:text-slate-950')
+              }`}
             >
-              Ulasan
+              Review
+              {activeTab === 'ulasan' && (
+                <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-emerald-600 rounded-full"></span>
+              )}
+            </button>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <button className={`${activeTab === 'beranda' ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-slate-900'} transition-colors cursor-pointer p-1`}>
+              <Search className="w-4 h-4" />
+            </button>
+            <button className={`${activeTab === 'beranda' ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-slate-900'} transition-colors cursor-pointer p-1`}>
+              <User className="w-4.5 h-4.5" />
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Spacing to clear fixed navbar */}
-      <div className="h-16 shrink-0"></div>
+      {/* Spacing to clear fixed navbar - only when not on beranda */}
+      {activeTab !== 'beranda' && <div className="h-16 shrink-0"></div>}
 
       {/* 2. MAIN VIEWS SWITCHER WITH TRANSITIONS */}
       <main className="flex-1">
@@ -1024,34 +1074,104 @@ export default function App() {
         {activeTab === 'beranda' && (
           <div className="animate-fade-in">
             
-            {/* HERO SECTION - Deep immersive visual banner */}
-            <header className="pt-20 pb-24 bg-gradient-to-b from-emerald-50 to-slate-50 px-6 text-center border-b border-slate-100">
-              <div className="max-w-4xl mx-auto">
-                <span className="text-emerald-700 font-extrabold tracking-widest text-[10px] uppercase bg-emerald-100/80 border border-emerald-200/50 px-4 py-1.5 rounded-full inline-flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping"></span>
-                  Destinasi Populer di Danau Toba
-                </span>
-                <h1 className="text-4xl md:text-6xl font-black text-slate-900 mt-6 leading-tight tracking-tight">
-                  Temukan Surga Tersembunyi di <span className="text-emerald-600 underline decoration-wavy decoration-emerald-500/30">TOBA</span>
-                </h1>
-                <p className="mt-6 text-base md:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-                  Nikmati tebing megah hasil letusan supervulkanik purba, air danau sebiru kristal, dan momen matahari terbenam magis yang takkan terlupakan. Rencanakan liburan impian Anda bersama asisten pintar kami.
-                </p>
-                
-                <div className="mt-10 flex flex-wrap justify-center gap-4">
-                  <button
-                    onClick={() => setActiveTab('planner')}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg shadow-emerald-600/20 transition-all transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer flex items-center gap-2"
-                  >
-                    <Sparkles className="w-4 h-4 text-emerald-200" />
-                    Mulai Susun Rencana (AI Planner)
-                  </button>
-                  <button
-                    onClick={() => setActiveTab('ulasan')}
-                    className="bg-white border border-slate-200 hover:bg-slate-55 text-slate-700 font-bold px-8 py-3.5 rounded-xl transition-all cursor-pointer"
-                  >
-                    Lihat Ulasan Pelancong
-                  </button>
+            {/* HERO SECTION - Premium Cinematic Full-Bleed Banner modeled 100% after mockup */}
+            <header className="relative w-full h-[95vh] min-h-[680px] md:min-h-[780px] lg:min-h-[850px] bg-slate-950 flex flex-col justify-between overflow-hidden">
+              {/* Background aerial image of exquisite volcanic waters */}
+              <div 
+                className="absolute inset-0 bg-cover bg-center transition-all duration-700 scale-100"
+                style={{
+                  backgroundImage: `url('https://images.unsplash.com/photo-1626696445855-5f1f90db7ae8?q=80&w=1800&auto=format&fit=crop')`,
+                }}
+              />
+              {/* Complex color gradient overlays to perfectly match luxury travel visual aesthetics */}
+              <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/45 to-transparent z-10" />
+              <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-slate-950/95 via-slate-950/10 to-transparent z-10" />
+
+              {/* Floating carousel/scroller navigation chevron mimicking the mockup */}
+              <div className="absolute left-6 md:left-12 top-11/20 -translate-y-1/2 z-20 hidden md:flex">
+                <button 
+                  onClick={() => setActiveTab('galeri')}
+                  className="w-12 h-12 rounded-full bg-white/95 hover:bg-white text-slate-950 flex items-center justify-center shadow-2xl hover:scale-105 transition-all cursor-pointer group"
+                  title="Discover Our Beautiful Spots"
+                >
+                  <svg className="w-5 h-5 mr-0.5 text-slate-800 group-hover:text-emerald-700 transition-colors" fill="none" stroke="currentColor" strokeWidth="2.8" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Immersive Typographic Content container */}
+              <div className="relative z-20 max-w-7xl mx-auto w-full px-6 md:px-12 lg:px-16 flex-1 flex flex-col justify-end pb-12 pt-32">
+                <div className="max-w-4xl text-left">
+                  
+                  {/* Huge condensed display headlines directly mimicking the typography */}
+                  <h1 className="text-5xl md:text-8xl tracking-tighter text-white font-sans font-black leading-[0.9] select-none flex flex-col gap-1">
+                    <span className="block tracking-tighter font-black">
+                      WORLD
+                    </span>
+                    <span className="block tracking-tighter font-black text-white/95">
+                      OF <span className="text-transparent" style={{ WebkitTextStroke: '1.5px rgba(255, 255, 255, 0.95)', fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}>PARADISE,</span>
+                    </span>
+                    <span className="block tracking-tighter font-black text-white">
+                      INDONESIA
+                    </span>
+                  </h1>
+
+                  {/* Curated subtext from the mockup tailored tastefully for Toba */}
+                  <p className="mt-6 md:mt-8 text-sm md:text-base text-slate-200/90 max-w-xl leading-relaxed font-medium">
+                    Let's explore one of the third largest lakes in the world, namely Lake Toba. Enjoy 3 vacation packages at competitive prices and a strong soul.
+                  </p>
+
+                  {/* Primary & Secondary Call-to-actions */}
+                  <div className="mt-8 flex flex-wrap gap-4">
+                    <button
+                      onClick={() => setActiveTab('planner')}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold px-6 py-3 md:px-8 md:py-3.5 rounded-xl shadow-lg shadow-emerald-900/30 transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer flex items-center gap-2 text-xs uppercase tracking-wider"
+                    >
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Pesan Sekarang (AI Planner)
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('galeri')}
+                      className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-extrabold px-6 py-3 md:px-8 md:py-3.5 rounded-xl transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer text-xs uppercase tracking-wider"
+                    >
+                      Galeri Wisata
+                    </button>
+                  </div>
+
+                  {/* Horizontal solid separator divider modeled from mockup */}
+                  <div className="w-full h-[1px] bg-white/20 mt-14 mb-8" />
+
+                  {/* Bottom features row divided with subtle lines */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
+                    <div>
+                      <span className="block text-[10px] text-slate-300 uppercase tracking-widest font-bold">
+                        Most popular activity
+                      </span>
+                      <span className="block text-sm md:text-base text-white font-extrabold mt-1">
+                        Maniac Snorkeling & Jet Ski
+                      </span>
+                    </div>
+                    
+                    <div className="md:border-l md:border-white/15 md:pl-8">
+                      <span className="block text-[10px] text-slate-300 uppercase tracking-widest font-bold">
+                        Most excited place
+                      </span>
+                      <span className="block text-sm md:text-base text-white font-extrabold mt-1">
+                        Samosir Art & Culture
+                      </span>
+                    </div>
+
+                    <div className="md:border-l md:border-white/15 md:pl-8">
+                      <span className="block text-[10px] text-slate-300 uppercase tracking-widest font-bold">
+                        Culture style
+                      </span>
+                      <span className="block text-sm md:text-base text-white font-extrabold mt-1">
+                        Vintage Batak Heritage
+                      </span>
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </header>
@@ -1416,7 +1536,7 @@ export default function App() {
 
         {/* ==================== VIEW: SMART PLANNER (THE ITINERARY ENGINE) ==================== */}
         {activeTab === 'planner' && (
-          <div className="animate-fade-in max-w-7xl mx-auto px-4 md:px-6 py-6 flex flex-col md:flex-row gap-6">
+          <div className="animate-fade-in max-w-7xl mx-auto px-4 md:px-6 pt-6 pb-24 md:pb-6 flex flex-col md:flex-row gap-6">
             
             {/* Left Column Controls */}
             <aside className="w-full md:w-[320px] flex flex-col gap-4 shrink-0">
@@ -1990,6 +2110,23 @@ export default function App() {
                     </p>
                   </div>
                 )}
+
+                {/* Bottom direct book block */}
+                <div className="p-6 bg-emerald-50/50 border-t border-slate-100/80 flex flex-col sm:flex-row items-center justify-between gap-4">
+                  <div className="text-center sm:text-left">
+                    <h4 className="font-extrabold text-slate-850 text-xs">Rencana Perjalanan Sudah Sempurna?</h4>
+                    <p className="text-slate-500 text-[10px] mt-0.5 leading-relaxed">
+                      Pesan seluruh rangkaian liburan impian Danau Toba ini sekarang lewat tim cs WhatsApp kami!
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleBookOnWhatsApp}
+                    className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition-all cursor-pointer shrink-0"
+                  >
+                    <span className="text-xs">💬</span>
+                    Pesan Sekarang
+                  </button>
+                </div>
               </div>
 
               {/* Footer controls container of timeline */}
@@ -2018,6 +2155,24 @@ export default function App() {
               </footer>
 
             </main>
+
+            {/* Sticky Bottom Booking Bar specifically styled for Mobile viewports */}
+            <div className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200/80 px-6 py-3.5 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] flex md:hidden items-center justify-between gap-4">
+              <div className="text-left">
+                <span className="block text-[8px] uppercase font-extrabold text-slate-400 tracking-wider">Total Est. Biaya</span>
+                <span className="block text-sm font-black text-slate-800">
+                  Rp {grandTotalWithOverhead.toLocaleString('id-ID')}
+                </span>
+              </div>
+              <button
+                onClick={handleBookOnWhatsApp}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold px-5 py-2.5 rounded-xl text-xs flex items-center gap-1.5 shadow-sm active:scale-95 transition-all cursor-pointer"
+              >
+                <span className="text-sm">💬</span>
+                Pesan Sekarang
+              </button>
+            </div>
+
           </div>
         )}
 
