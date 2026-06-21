@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   MapPin,
   Calendar,
@@ -523,6 +524,7 @@ export default function App() {
   // Navigation / View state
   // "beranda" | "planner" | "ulasan" | "galeri"
   const [activeTab, setActiveTab] = useState<string>('beranda');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Input Selection States for Planner
   const [destination, setDestination] = useState<string>('Lake Toba, North Sumatra');
@@ -1055,25 +1057,24 @@ export default function App() {
             </button>
           </div>
 
-          {/* Mobile Options Dropdown Navigation */}
+          {/* Mobile Options Dropdown Navigation with Premium Motion Animation */}
           <div className="block md:hidden relative">
-            <select
-              value={activeTab}
-              onChange={(e) => setActiveTab(e.target.value)}
-              className={`appearance-none font-bold text-[10px] tracking-widest uppercase pl-3.5 pr-7 py-1.5 rounded-lg border focus:outline-none transition-all duration-300 cursor-pointer shadow-xs ${
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className={`flex items-center gap-1.5 font-bold text-[10px] tracking-widest uppercase pl-3.5 pr-3 py-1.5 rounded-lg border focus:outline-none transition-all duration-300 cursor-pointer shadow-xs ${
                 activeTab === 'beranda'
                   ? 'bg-white/5 backdrop-blur-xs border-white/15 text-white hover:bg-white/10'
                   : 'bg-black/[0.02] backdrop-blur-xs border-slate-200/80 text-slate-800 hover:bg-black/[0.05]'
               }`}
             >
-              <option className="text-slate-900 font-bold bg-white" value="beranda">Explore</option>
-              <option className="text-slate-900 font-bold bg-white" value="galeri">Discover</option>
-              <option className="text-slate-900 font-bold bg-white" value="planner">Tour Package</option>
-              <option className="text-slate-900 font-bold bg-white" value="ulasan">Review</option>
-            </select>
-            <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+              <span>
+                {activeTab === 'beranda' && 'Explore'}
+                {activeTab === 'galeri' && 'Discover'}
+                {activeTab === 'planner' && 'Tour Package'}
+                {activeTab === 'ulasan' && 'Review'}
+              </span>
               <svg 
-                className={`w-3 h-3 ${activeTab === 'beranda' ? 'text-white/75' : 'text-slate-500'}`} 
+                className={`w-3 h-3 transition-transform duration-300 ${isMobileMenuOpen ? 'rotate-180' : ''} ${activeTab === 'beranda' ? 'text-white/75' : 'text-slate-500'}`} 
                 fill="none" 
                 stroke="currentColor" 
                 strokeWidth="2.5" 
@@ -1081,7 +1082,49 @@ export default function App() {
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
-            </div>
+            </button>
+
+            <AnimatePresence>
+              {isMobileMenuOpen && (
+                <>
+                  {/* Invisible background overlay to close the dropdown when clicking outside */}
+                  <div 
+                    className="fixed inset-0 z-40 bg-transparent" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+                    className="absolute top-full left-0 mt-1.5 w-44 bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-xl shadow-xl py-1.5 z-50 overflow-hidden origin-top-left"
+                  >
+                    {[
+                      { id: 'beranda', label: 'Explore', icon: '🗺️' },
+                      { id: 'galeri', label: 'Discover', icon: '🏝️' },
+                      { id: 'planner', label: 'Tour Package', icon: '✨' },
+                      { id: 'ulasan', label: 'Review', icon: '💬' },
+                    ].map((opt) => (
+                      <button
+                        key={opt.id}
+                        onClick={() => {
+                          setActiveTab(opt.id);
+                          setIsMobileMenuOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2.5 text-xs font-bold tracking-wide transition-all flex items-center gap-2 cursor-pointer ${
+                          activeTab === opt.id
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : 'text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span className="text-sm">{opt.icon}</span>
+                        <span>{opt.label}</span>
+                      </button>
+                    ))}
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="flex items-center space-x-4">
