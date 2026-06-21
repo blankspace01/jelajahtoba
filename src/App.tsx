@@ -30,7 +30,8 @@ import {
   ArrowRight,
   HeartHandshake,
   Search,
-  User
+  User,
+  Menu
 } from 'lucide-react';
 
 interface Stop {
@@ -998,7 +999,8 @@ export default function App() {
             </button>
           </div>
 
-          <div className="flex items-center space-x-6 md:space-x-8 text-sm font-semibold">
+          {/* Desktop Navigation Links */}
+          <div className="hidden md:flex items-center space-x-6 md:space-x-8 text-sm font-semibold">
             <button
               onClick={() => setActiveTab('beranda')}
               className={`transition-all outline-none relative py-1.5 cursor-pointer ${
@@ -1051,6 +1053,35 @@ export default function App() {
                 <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-emerald-600 rounded-full"></span>
               )}
             </button>
+          </div>
+
+          {/* Mobile Options Dropdown Navigation */}
+          <div className="block md:hidden relative">
+            <select
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value)}
+              className={`appearance-none font-bold text-[10px] tracking-widest uppercase pl-3.5 pr-7 py-1.5 rounded-lg border focus:outline-none transition-all duration-300 cursor-pointer shadow-xs ${
+                activeTab === 'beranda'
+                  ? 'bg-white/5 backdrop-blur-xs border-white/15 text-white hover:bg-white/10'
+                  : 'bg-black/[0.02] backdrop-blur-xs border-slate-200/80 text-slate-800 hover:bg-black/[0.05]'
+              }`}
+            >
+              <option className="text-slate-900 font-bold bg-white" value="beranda">Explore</option>
+              <option className="text-slate-900 font-bold bg-white" value="galeri">Discover</option>
+              <option className="text-slate-900 font-bold bg-white" value="planner">Tour Package</option>
+              <option className="text-slate-900 font-bold bg-white" value="ulasan">Review</option>
+            </select>
+            <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+              <svg 
+                className={`w-3 h-3 ${activeTab === 'beranda' ? 'text-white/75' : 'text-slate-500'}`} 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2.5" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
           </div>
 
           <div className="flex items-center space-x-4">
