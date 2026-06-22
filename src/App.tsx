@@ -2773,22 +2773,6 @@ export default function App() {
                 </div>
                 <div className="flex gap-2 flex-wrap md:flex-nowrap">
                   <button
-                    onClick={() => setIsChangePasswordModalOpen(true)}
-                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-md shadow-amber-500/10"
-                  >
-                    <span>🔑 Ganti Password Admin</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (confirm('Keluar dari mode Administrator?')) {
-                        handleAdminLogout();
-                      }
-                    }}
-                    className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-md shadow-rose-600/10"
-                  >
-                    <span>🚪 Logout</span>
-                  </button>
-                  <button
                     onClick={() => {
                       if (confirm('Apakah Anda yakin ingin mengembalikan semua harga stop ke default bawaan sistem?')) {
                         saveCustomPrices({});
@@ -3242,12 +3226,6 @@ export default function App() {
               {adminLoginError && (
                 <p className="text-red-500 text-[10px] font-bold text-center bg-red-50 py-1.5 px-3 rounded-lg border border-red-100">{adminLoginError}</p>
               )}
-
-              <div className="bg-emerald-50 text-emerald-800 p-3 rounded-xl border border-emerald-100/50 space-y-1 text-[10px] leading-relaxed">
-                <p className="font-extrabold text-emerald-900">💡 Demo Credentials:</p>
-                <p>Username: <code className="font-mono font-bold bg-emerald-100/80 px-1 py-0.5 rounded">admin</code></p>
-                <p>Password: <code className="font-mono font-bold bg-emerald-100/80 px-1 py-0.5 rounded">{storedAdminPassword}</code></p>
-              </div>
 
               <button 
                 type="submit"
