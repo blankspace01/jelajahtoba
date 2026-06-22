@@ -738,6 +738,11 @@ export default function App() {
 
   // State to hold local image file previews for gallery uploading
   const [localFilePreview, setLocalFilePreview] = useState<string | null>(null);
+  const [galTitle, setGalTitle] = useState<string>('');
+  const [galDesc, setGalDesc] = useState<string>('');
+  const [galUrl, setGalUrl] = useState<string>('');
+  const [galTrending, setGalTrending] = useState<boolean>(false);
+  const [dragActive, setDragActive] = useState<boolean>(false);
 
   // Input Selection States for Planner
   const [destination, setDestination] = useState<string>('Lake Toba, North Sumatra');
@@ -1822,94 +1827,157 @@ export default function App() {
                     <h3 className="font-extrabold text-slate-800 text-sm mt-1">Tambah Foto Galeri</h3>
                     <p className="text-[10px] text-slate-500">Unggah foto baru ke galeri untuk dilihat pengunjung.</p>
                   </div>
-                  <form onSubmit={(e) => {
-                    e.preventDefault();
-                    const form = e.currentTarget;
-                    const titleInput = form.elements.namedItem('galTitle') as HTMLInputElement;
-                    const descInput = form.elements.namedItem('galDesc') as HTMLTextAreaElement;
-                    const urlInput = form.elements.namedItem('galUrl') as HTMLInputElement;
-                    const fileInput = form.elements.namedItem('galFile') as HTMLInputElement;
-                    const trendingInput = form.elements.namedItem('galTrending') as HTMLInputElement;
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (!galTitle.trim()) {
+                        alert('Harap isi Judul Foto!');
+                        return;
+                      }
 
-                    let src = urlInput ? urlInput.value.trim() : '';
-                    const title = titleInput ? titleInput.value.trim() : '';
-                    const desc = descInput ? descInput.value.trim() : '';
-                    const isTrending = trendingInput ? trendingInput.checked : false;
-
-                    if (!title) {
-                      alert('Harap isi Judul Foto!');
-                      return;
-                    }
-
-                    const addNewItem = (imageUrl: string) => {
-                      const newItem: GalleryItem = {
-                        id: `gal-${Date.now()}`,
-                        src: imageUrl,
-                        alt: title,
-                        title: title,
-                        description: desc,
-                        isTrending: isTrending
+                      const finalizeAdd = (imageUrl: string) => {
+                        const newItem: GalleryItem = {
+                          id: `gal-${Date.now()}`,
+                          src: imageUrl,
+                          alt: galTitle,
+                          title: galTitle,
+                          description: galDesc,
+                          isTrending: galTrending
+                        };
+                        setGalleryItems(prev => [newItem, ...prev]);
+                        
+                        // Reset forms
+                        setGalTitle('');
+                        setGalDesc('');
+                        setGalUrl('');
+                        setGalTrending(false);
+                        setLocalFilePreview(null);
                       };
-                      setGalleryItems(prev => [newItem, ...prev]);
-                      form.reset();
-                      setLocalFilePreview(null);
-                    };
 
-                    if (fileInput && fileInput.files && fileInput.files[0]) {
-                      const reader = new FileReader();
-                      reader.onloadend = () => {
-                        addNewItem(reader.result as string);
-                      };
-                      reader.readAsDataURL(fileInput.files[0]);
-                    } else if (src) {
-                      addNewItem(src);
-                    } else {
-                      alert('Harap salin URL Gambar atau unggah Berkas Foto lokal!');
-                    }
-                  }} className="space-y-3 text-left flex-1 flex flex-col justify-end">
+                      if (localFilePreview) {
+                        finalizeAdd(localFilePreview);
+                      } else if (galUrl.trim()) {
+                        finalizeAdd(galUrl.trim());
+                      } else {
+                        alert('Harap masukkan URL Gambar atau pilih Berkas Foto lokal!');
+                      }
+                    }} 
+                    className="space-y-3 text-left flex-1 flex flex-col justify-end"
+                  >
                     <div>
                       <label className="block text-[9px] uppercase font-bold text-slate-500 mb-0.5">Judul Foto</label>
-                      <input name="galTitle" required type="text" className="w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="Senja Danau Toba" />
+                      <input 
+                        value={galTitle}
+                        onChange={(e) => setGalTitle(e.target.value)}
+                        required 
+                        type="text" 
+                        className="w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 outline-none focus:border-emerald-500 bg-white" 
+                        placeholder="Senja Danau Toba" 
+                      />
                     </div>
                     <div>
                       <label className="block text-[9px] uppercase font-bold text-slate-500 mb-0.5">Deskripsi</label>
-                      <textarea name="galDesc" rows={2} className="w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 outline-none focus:border-emerald-500 resize-none text-[11px]" placeholder="Cerita singkat foto..." />
+                      <textarea 
+                        value={galDesc}
+                        onChange={(e) => setGalDesc(e.target.value)}
+                        rows={2} 
+                        className="w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 outline-none focus:border-emerald-500 resize-none text-[11px] bg-white" 
+                        placeholder="Cerita singkat foto..." 
+                      />
                     </div>
-                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-1.5">
+                    
+                    <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 space-y-2">
                       <label className="block text-[9px] uppercase font-bold text-slate-500">PILIH METODE UNGGAH:</label>
+                      
+                      {/* Method 1: URL Input */}
                       <div>
                         <label className="block text-[8px] text-slate-400">1. Alamat (URL) Gambar:</label>
-                        <input name="galUrl" type="url" className="w-full px-2 py-0.5 text-[10px] rounded border border-slate-200 outline-none focus:border-emerald-500" placeholder="https://example.com/foto.jpg" />
+                        <input 
+                          value={galUrl}
+                          onChange={(e) => setGalUrl(e.target.value)}
+                          type="url" 
+                          className="w-full px-2 py-0.5 text-[10px] rounded border border-slate-200 outline-none focus:border-emerald-500 bg-white" 
+                          placeholder="https://example.com/foto.jpg" 
+                        />
                       </div>
+
+                      {/* Method 2: Drag and drop or Browse */}
                       <div>
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center mb-0.5">
                           <label className="block text-[8px] text-slate-400">2. Atau File Gambar Lokal:</label>
                           {localFilePreview && (
-                            <button type="button" onClick={() => setLocalFilePreview(null)} className="text-[8px] font-bold text-rose-500 hover:underline">Hapus Preview</button>
+                            <button 
+                              type="button" 
+                              onClick={() => setLocalFilePreview(null)} 
+                              className="text-[8px] font-bold text-rose-500 hover:underline cursor-pointer"
+                            >
+                              Hapus Preview
+                            </button>
                           )}
                         </div>
-                        <input name="galFile" type="file" accept="image/*" onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              setLocalFilePreview(reader.result as string);
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }} className="w-full text-[9px] text-slate-500 file:mr-2 file:py-0.5 file:px-1.5 file:rounded file:border-0 file:text-[9px] file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer" />
+
+                        <div 
+                          className={`border border-dashed rounded-lg p-2 text-center transition-all cursor-pointer relative ${
+                            dragActive ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-300 bg-white hover:bg-slate-50'
+                          }`}
+                          onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setDragActive(true); }}
+                          onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDragActive(true); }}
+                          onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setDragActive(false); }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setDragActive(false);
+                            const file = e.dataTransfer.files?.[0];
+                            if (file && file.type.startsWith('image/')) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setLocalFilePreview(reader.result as string);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        >
+                          <input 
+                            id="galleryFileInput"
+                            type="file" 
+                            accept="image/*" 
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  setLocalFilePreview(reader.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }} 
+                            className="hidden" 
+                          />
+                          <label htmlFor="galleryFileInput" className="cursor-pointer block text-[9.5px] leading-tight text-slate-500">
+                            <strong>Pilih Gambar</strong> atau seret file gambar ke sini
+                          </label>
+                        </div>
+
                         {localFilePreview && (
-                          <div className="mt-1 w-full h-10 bg-slate-50 rounded border border-slate-150 overflow-hidden">
+                          <div className="mt-1.5 w-full h-12 bg-slate-50 rounded border border-slate-150 overflow-hidden relative">
                             <img src={localFilePreview} className="w-full h-full object-cover" />
                           </div>
                         )}
                       </div>
                     </div>
+
                     <div className="flex items-center gap-1.5">
-                      <input name="galTrending" type="checkbox" id="galTrending" className="rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer" />
-                      <label htmlFor="galTrending" className="text-[10px] font-bold text-slate-600 cursor-pointer">Beri label 🔥 Trending</label>
+                      <input 
+                        checked={galTrending}
+                        onChange={(e) => setGalTrending(e.target.checked)}
+                        type="checkbox" 
+                        id="galTrending" 
+                        className="rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer" 
+                      />
+                      <label htmlFor="galTrending" className="text-[10px] font-bold text-slate-600 cursor-pointer select-none">Beri label 🔥 Trending</label>
                     </div>
-                    <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-1 rounded-lg text-xs font-black transition-all cursor-pointer mt-1">
+                    
+                    <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg text-xs font-black transition-all cursor-pointer mt-1 shadow-sm">
                       Unggah Ke Galeri
                     </button>
                   </form>
