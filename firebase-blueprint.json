@@ -1,0 +1,23 @@
+{
+  "collections": [
+    {
+      "name": "gallery",
+      "schema": {
+        "id": "string",
+        "src": "string",
+        "alt": "string",
+        "title": "string",
+        "description": "string",
+        "isTrending": "boolean",
+        "createdAt": "number"
+      }
+    },
+    {
+      "name": "settings",
+      "schema": {
+        "password": "string",
+        "customPrices": "string"
+      }
+    }
+  ]
+}

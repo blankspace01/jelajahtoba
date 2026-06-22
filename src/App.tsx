@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
+  fetchGalleryItemsFromDB,
+  addGalleryItemToDB,
+  deleteGalleryItemFromDB,
+  fetchAdminPasswordFromDB,
+  saveAdminPasswordToDB,
+  fetchCustomPricesFromDB,
+  saveCustomPricesToDB,
+  compressImage
+} from './lib/firebase';
+import {
   MapPin,
   Calendar,
   Compass,
@@ -707,10 +717,41 @@ export default function App() {
     return {};
   });
 
+  // Synchronize dynamic settings, credential changes, and gallery entries with Cloud Firestore
+  useEffect(() => {
+    const syncDatabaseData = async () => {
+      try {
+        const cloudPassword = await fetchAdminPasswordFromDB();
+        if (cloudPassword && cloudPassword !== 'admin') {
+          setStoredAdminPassword(cloudPassword);
+          localStorage.setItem('toba_admin_password', cloudPassword);
+        }
+
+        const cloudPrices = await fetchCustomPricesFromDB();
+        if (cloudPrices && Object.keys(cloudPrices).length > 0) {
+          setCustomStopPrices(cloudPrices);
+          localStorage.setItem('toba_custom_prices', JSON.stringify(cloudPrices));
+        }
+
+        const cloudGallery = await fetchGalleryItemsFromDB(DEFAULT_GALLERY_ITEMS);
+        if (cloudGallery && cloudGallery.length > 0) {
+          setGalleryItems(cloudGallery);
+          localStorage.setItem('toba_gallery_items', JSON.stringify(cloudGallery));
+        }
+      } catch (err) {
+        console.error("Failed to fetch cloud records on startup: ", err);
+      }
+    };
+    syncDatabaseData();
+  }, []);
+
   // Sync customStopPrices and update current savedTrips automatically when admin overrides prices
   const saveCustomPrices = (updatedPrices: Record<string, { ticketPrice?: number; mealPrice?: number; transportPrice?: number; otherPrice?: number }>) => {
     setCustomStopPrices(updatedPrices);
     localStorage.setItem('toba_custom_prices', JSON.stringify(updatedPrices));
+    
+    // Save customized price list permanently to the cloud Firestore database
+    saveCustomPricesToDB(updatedPrices);
 
     // Update active trips / savedTrips elements dynamically
     setSavedTrips((prevTrips) => {
@@ -743,6 +784,8 @@ export default function App() {
   const [galUrl, setGalUrl] = useState<string>('');
   const [galTrending, setGalTrending] = useState<boolean>(false);
   const [dragActive, setDragActive] = useState<boolean>(false);
+  const [deleteConfirmationId, setDeleteConfirmationId] = useState<string | null>(null);
+  const [deleteConfirmationTitle, setDeleteConfirmationTitle] = useState<string>('');
 
   // Input Selection States for Planner
   const [destination, setDestination] = useState<string>('Lake Toba, North Sumatra');
@@ -929,6 +972,10 @@ export default function App() {
     try {
       localStorage.setItem('toba_admin_password', newPassword);
       setStoredAdminPassword(newPassword);
+      
+      // Save password update to Cloud Firestore Settings DB
+      saveAdminPasswordToDB(newPassword);
+
       setChangePasswordSuccess('Password admin berhasil diubah!');
       // Reset inputs and close window after a short success timeout
       setTimeout(() => {
@@ -1846,6 +1893,9 @@ export default function App() {
                         };
                         setGalleryItems(prev => [newItem, ...prev]);
                         
+                        // Save to Firestore Database
+                        addGalleryItemToDB(newItem);
+                        
                         // Reset forms
                         setGalTitle('');
                         setGalDesc('');
@@ -1930,8 +1980,10 @@ export default function App() {
                             const file = e.dataTransfer.files?.[0];
                             if (file && file.type.startsWith('image/')) {
                               const reader = new FileReader();
-                              reader.onloadend = () => {
-                                setLocalFilePreview(reader.result as string);
+                              reader.onloadend = async () => {
+                                const base64Image = reader.result as string;
+                                const compressed = await compressImage(base64Image);
+                                setLocalFilePreview(compressed);
                               };
                               reader.readAsDataURL(file);
                             }
@@ -1945,8 +1997,10 @@ export default function App() {
                               const file = e.target.files?.[0];
                               if (file) {
                                 const reader = new FileReader();
-                                reader.onloadend = () => {
-                                  setLocalFilePreview(reader.result as string);
+                                reader.onloadend = async () => {
+                                  const base64Image = reader.result as string;
+                                  const compressed = await compressImage(base64Image);
+                                  setLocalFilePreview(compressed);
                                 };
                                 reader.readAsDataURL(file);
                               }
@@ -2002,9 +2056,8 @@ export default function App() {
                       {isAdmin && (
                         <button
                           onClick={() => {
-                            if (confirm(`Apakah Anda yakin ingin menghapus "${item.title}" dari galeri?`)) {
-                              setGalleryItems(prev => prev.filter(g => g.id !== item.id));
-                            }
+                            setDeleteConfirmationId(item.id);
+                            setDeleteConfirmationTitle(item.title);
                           }}
                           className="absolute top-3 left-3 z-10 bg-rose-600 hover:bg-rose-700 text-white text-[9px] font-bold px-2 py-1 rounded-full shadow-md flex items-center gap-1 transition-all cursor-pointer"
                         >
@@ -3388,6 +3441,71 @@ export default function App() {
                 Simpan Kata Sandi Baru
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 6. PHOTO GALLERY ITEM DELETE CONFIRMATION MODAL WITH WARNING NOTICE */}
+      {deleteConfirmationId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in shadow-2xl">
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-sm w-full border border-slate-150 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-2 bg-rose-600"></div>
+            
+            <button 
+              onClick={() => {
+                setDeleteConfirmationId(null);
+                setDeleteConfirmationTitle('');
+              }}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="text-center mb-5 pt-2">
+              <span className="text-3xl">⚠️</span>
+              <h3 className="text-lg font-black text-slate-900 mt-2">Hapus Foto Galeri</h3>
+              <p className="text-slate-550 text-xs mt-2 px-1 leading-relaxed">
+                Apakah Anda yakin ingin menghapus foto <span className="font-bold text-slate-800">"{deleteConfirmationTitle}"</span> dari galeri?
+              </p>
+            </div>
+
+            <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4 mb-5 text-left">
+              <h4 className="text-rose-800 text-[10px] font-black uppercase tracking-wider mb-1 flex items-center gap-1">
+                <span>📢</span> Peringatan Penting:
+              </h4>
+              <p className="text-rose-750 text-[10.5px] leading-relaxed">
+                Tindakan ini bersifat permanen dan akan menghapus data foto dari basis data cloud Firestore secara langsung. Pengunjung situs tidak akan dapat melihat foto ini lagi di galeri publik.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button 
+                type="button"
+                onClick={() => {
+                  setDeleteConfirmationId(null);
+                  setDeleteConfirmationTitle('');
+                }}
+                className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer"
+              >
+                Batal
+              </button>
+              <button 
+                type="button"
+                onClick={async () => {
+                  if (deleteConfirmationId) {
+                    setGalleryItems(prev => prev.filter(g => g.id !== deleteConfirmationId));
+                    await deleteGalleryItemFromDB(deleteConfirmationId);
+                  }
+                  setDeleteConfirmationId(null);
+                  setDeleteConfirmationTitle('');
+                }}
+                className="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer shadow-md shadow-rose-600/15"
+              >
+                Hapus Permanen
+              </button>
+            </div>
           </div>
         </div>
       )}
