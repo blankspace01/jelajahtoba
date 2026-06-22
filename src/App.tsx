@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Analytics } from '@vercel/analytics/react';
 import {
   MapPin,
   Calendar,
@@ -972,6 +973,7 @@ export default function App() {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 font-sans text-slate-900 antialiased">
+      <Analytics />
       
       {/* 1. NAVBAR - High-quality dynamic glassmorphism navigation */}
       <nav className={`fixed top-0 left-0 right-0 z-40 transition-all duration-300 ${
