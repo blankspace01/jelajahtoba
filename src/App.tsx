@@ -347,6 +347,27 @@ const getOfflineTobaItinerary = (durationStr: string, style: string): Day[] => {
     });
   }
 
+  // Apply admin custom pricing overrides if any exist in localStorage
+  try {
+    const cachedOverrideString = localStorage.getItem('toba_custom_prices');
+    if (cachedOverrideString) {
+      const overrides = JSON.parse(cachedOverrideString);
+      days.forEach(day => {
+        day.stops.forEach(stop => {
+          const override = overrides[stop.name];
+          if (override) {
+            if (override.ticketPrice !== undefined) stop.ticketPrice = override.ticketPrice;
+            if (override.mealPrice !== undefined) stop.mealPrice = override.mealPrice;
+            if (override.transportPrice !== undefined) stop.transportPrice = override.transportPrice;
+            if (override.otherPrice !== undefined) stop.otherPrice = override.otherPrice;
+          }
+        });
+      });
+    }
+  } catch (err) {
+    console.error('Error applying admin pricing overrides:', err);
+  }
+
   return days;
 };
 
@@ -503,6 +524,105 @@ const DEFAULT_LAKE_TOBA_TRIP: SavedTrip = {
   ]
 };
 
+interface GalleryItem {
+  id: string;
+  src: string;
+  alt: string;
+  title: string;
+  description: string;
+  isTrending?: boolean;
+}
+
+const DEFAULT_GALLERY_ITEMS: GalleryItem[] = [
+  {
+    id: 'gal-1',
+    src: "https://images.unsplash.com/photo-1642762428067-7ef09dee28f7?q=80&w=1170&auto=format&fit=crop",
+    alt: "Pesona Budaya Pulau Samosir",
+    title: "Pesona Budaya Pulau Samosir",
+    description: "Terletak tepat di tengah Danau Toba, pulau ini menyajikan wisata budaya luhur suku Batak Toba dan makam batu kuno raja-raja Batak."
+  },
+  {
+    id: 'gal-2',
+    src: "https://images.unsplash.com/photo-1713149733386-9565729633ef?q=80&w=1631&auto=format&fit=crop",
+    alt: "Pelabuhan Ajibata & Parapat",
+    title: "Pelabuhan Ajibata & Parapat",
+    description: "Titik awal penyeberangan kapal wisata legendaris menuju pulau Samosir, dikelilingi perbukitan pinus hijau yang menyejukkan."
+  },
+  {
+    id: 'gal-3',
+    src: "https://images.unsplash.com/photo-1737549107076-ad49b000761b?q=80&w=1631&auto=format&fit=crop",
+    alt: "Glamping di Kaldera Toba",
+    title: "Glamping di Kaldera Toba",
+    description: "Bobocabin Signature menawarkan tempat bermalam ramah lingkungan berteknologi tinggi dengan jendela kaca besar super estetik."
+  },
+  {
+    id: 'gal-4',
+    src: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=1170&auto=format&fit=crop",
+    alt: "Resort Tepi Danau",
+    title: "Resort Tepi Danau",
+    description: "Santai menikmati kopi Sidikalang hangat langsung dari teras privat hotel berbintang yang menghadap langsung ke air danau."
+  },
+  {
+    id: 'gal-5',
+    src: "https://image.danautoba.co.id/2023/08/Cantiknya-Pantai-Batu-Hoda-Samosir-Bikin-Banyak-Orang-Jatuh-Hati.webp",
+    alt: "Pantai Pasir Putih Batu Hoda",
+    title: "Pantai Pasir Putih Batu Hoda",
+    description: "Destinasi bersantai ramah keluarga dengan banyak wahana bermain anak, pohon kelapa rindang, dan saung beristirahat."
+  },
+  {
+    id: 'gal-6',
+    src: "https://img.idxchannel.com/media/700/images/idx/2024/06/27/damri_danau_toba.jpg",
+    alt: "Transportasi Keliling Samosir",
+    title: "Transportasi Keliling Samosir",
+    description: "Keliling pulau vulkanik melewati tebing berkelok dan sawah hijau batak yang terbentang luas bagai permadani alam."
+  },
+  {
+    id: 'gal-7',
+    src: "https://images.unsplash.com/photo-1626696445855-5f1f90db7ae8?q=80&w=1170&auto=format&fit=crop",
+    alt: "Air Terjun Sipiso-Piso",
+    title: "Air Terjun Sipiso-Piso",
+    description: "Air terjun dengan pancuran air setinggi 120 meter memotong jurang tebing sempit pinus hijau yang sangat megah dan ikonik dekat Tongging.",
+    isTrending: true
+  },
+  {
+    id: 'gal-8',
+    src: "https://woni.sklmb.co/api/media/uploads/e29d565f-51e1-483c-87fc-87b56c4272c4.jpg",
+    alt: "Bukit Sibea-Bea & Patung Kristus",
+    title: "Bukit Sibea-Bea & Patung Kristus",
+    description: "Dikenal dengan jalan kelok ganda berlatar air biru jernih dan patung ikonik baru yang menjulang gagah menawarkan pemandangan magis.",
+    isTrending: true
+  },
+  {
+    id: 'gal-9',
+    src: "https://images.unsplash.com/photo-1693341195831-742a7b6f11ee?q=80&w=764&auto=format&fit=crop",
+    alt: "Bukit Holbung",
+    title: "Bukit Holbung (Bukit Teletubbies)",
+    description: "Tebing berumput sabana hijau dengan spot swafoto dan area perkemahan puncak paling tren untuk melihat matahari terbit eksotis.",
+    isTrending: true
+  }
+];
+
+const getAllPredefinedStops = (): Stop[] => {
+  const durations = ['2 Days, 1 Night', '3 Days, 2 Nights', '5 Days, 4 Nights'];
+  const styles = ['Adventure', 'Culture', 'Relaxation', 'Foodie'];
+  const uniqueStops = new Map<string, Stop>();
+
+  durations.forEach(dur => {
+    styles.forEach(style => {
+      const itinerary = getOfflineTobaItinerary(dur, style);
+      itinerary.forEach(day => {
+        day.stops.forEach(stop => {
+          if (!uniqueStops.has(stop.name)) {
+            uniqueStops.set(stop.name, { ...stop });
+          }
+        });
+      });
+    });
+  });
+
+  return Array.from(uniqueStops.values());
+};
+
 const INITIAL_REVIEWS: Review[] = [
   {
     id: 'rev-1',
@@ -525,6 +645,99 @@ export default function App() {
   // "beranda" | "planner" | "ulasan" | "galeri"
   const [activeTab, setActiveTab] = useState<string>('beranda');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Admin Login and Management State
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('toba_is_admin') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [isAdminModalOpen, setIsAdminModalOpen] = useState<boolean>(false);
+  const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState<boolean>(false);
+  const [adminUsername, setAdminUsername] = useState<string>('');
+  const [adminPassword, setAdminPassword] = useState<string>('');
+  const [adminLoginError, setAdminLoginError] = useState<string>('');
+  const [adminSearchQuery, setAdminSearchQuery] = useState<string>('');
+
+  // Password setting loaded from localStorage
+  const [storedAdminPassword, setStoredAdminPassword] = useState<string>(() => {
+    try {
+      return localStorage.getItem('toba_admin_password') || 'admin';
+    } catch {
+      return 'admin';
+    }
+  });
+
+  const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState<boolean>(false);
+  const [currentPassword, setCurrentPassword] = useState<string>('');
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState<string>('');
+  const [changePasswordError, setChangePasswordError] = useState<string>('');
+  const [changePasswordSuccess, setChangePasswordSuccess] = useState<string>('');
+
+  // Gallery items state - loaded from localStorage or default
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(() => {
+    try {
+      const cached = localStorage.getItem('toba_gallery_items');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (err) {
+      console.error('Error loading gallery items from localStorage:', err);
+    }
+    return DEFAULT_GALLERY_ITEMS;
+  });
+
+  // Keep galleryItems in localStorage sync
+  useEffect(() => {
+    localStorage.setItem('toba_gallery_items', JSON.stringify(galleryItems));
+  }, [galleryItems]);
+
+  // Pricing configuration override state
+  const [customStopPrices, setCustomStopPrices] = useState<Record<string, { ticketPrice?: number; mealPrice?: number; transportPrice?: number; otherPrice?: number }>>(() => {
+    try {
+      const cached = localStorage.getItem('toba_custom_prices');
+      if (cached) return JSON.parse(cached);
+    } catch (err) {
+      console.error('Error loading custom prices from localStorage:', err);
+    }
+    return {};
+  });
+
+  // Sync customStopPrices and update current savedTrips automatically when admin overrides prices
+  const saveCustomPrices = (updatedPrices: Record<string, { ticketPrice?: number; mealPrice?: number; transportPrice?: number; otherPrice?: number }>) => {
+    setCustomStopPrices(updatedPrices);
+    localStorage.setItem('toba_custom_prices', JSON.stringify(updatedPrices));
+
+    // Update active trips / savedTrips elements dynamically
+    setSavedTrips((prevTrips) => {
+      return prevTrips.map((trip) => {
+        const updatedDays = trip.days.map((dayObj) => {
+          const updatedStops = dayObj.stops.map((stop) => {
+            const override = updatedPrices[stop.name];
+            if (override) {
+              return {
+                ...stop,
+                ticketPrice: override.ticketPrice !== undefined ? override.ticketPrice : stop.ticketPrice,
+                mealPrice: override.mealPrice !== undefined ? override.mealPrice : stop.mealPrice,
+                transportPrice: override.transportPrice !== undefined ? override.transportPrice : stop.transportPrice,
+                otherPrice: override.otherPrice !== undefined ? override.otherPrice : stop.otherPrice,
+              };
+            }
+            return stop;
+          });
+          return { ...dayObj, stops: updatedStops };
+        });
+        return { ...trip, days: updatedDays };
+      });
+    });
+  };
+
+  // State to hold local image file previews for gallery uploading
+  const [localFilePreview, setLocalFilePreview] = useState<string | null>(null);
 
   // Input Selection States for Planner
   const [destination, setDestination] = useState<string>('Lake Toba, North Sumatra');
@@ -657,6 +870,73 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('wanderlust_stop_notes', JSON.stringify(stopNotes));
   }, [stopNotes]);
+
+  // Admin login credentials validator
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (adminUsername.trim().toLowerCase() === 'admin' && adminPassword === storedAdminPassword) {
+      setIsAdmin(true);
+      localStorage.setItem('toba_is_admin', 'true');
+      setIsAdminModalOpen(false);
+      setAdminLoginError('');
+      setAdminUsername('');
+      setAdminPassword('');
+    } else {
+      setAdminLoginError('Username atau Password admin salah!');
+    }
+  };
+
+  const handleAdminLogout = () => {
+    setIsAdmin(false);
+    localStorage.removeItem('toba_is_admin');
+    setActiveTab('beranda');
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  // Change Admin Password handler
+  const handleChangePassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    setChangePasswordError('');
+    setChangePasswordSuccess('');
+
+    if (currentPassword !== storedAdminPassword) {
+      setChangePasswordError('Password saat ini salah!');
+      return;
+    }
+
+    if (!newPassword.trim()) {
+      setChangePasswordError('Password baru tidak boleh kosong!');
+      return;
+    }
+
+    if (newPassword === currentPassword) {
+      setChangePasswordError('Password baru tidak boleh sama dengan password saat ini!');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setChangePasswordError('Konfirmasi password baru tidak cocok!');
+      return;
+    }
+
+    try {
+      localStorage.setItem('toba_admin_password', newPassword);
+      setStoredAdminPassword(newPassword);
+      setChangePasswordSuccess('Password admin berhasil diubah!');
+      // Reset inputs and close window after a short success timeout
+      setTimeout(() => {
+        setIsChangePasswordModalOpen(false);
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+        setChangePasswordSuccess('');
+      }, 1500);
+    } catch (err) {
+      setChangePasswordError('Gagal mengubah password admin.');
+    }
+  };
 
   // Adjust current active day if active trip or days counts changes
   useEffect(() => {
@@ -1056,6 +1336,21 @@ export default function App() {
                 <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-emerald-600 rounded-full"></span>
               )}
             </button>
+            {isAdmin && (
+              <button
+                onClick={() => setActiveTab('admin')}
+                className={`transition-all outline-none relative py-1.5 cursor-pointer font-bold flex items-center gap-1 ${
+                  activeTab === 'beranda'
+                    ? 'text-emerald-300 hover:text-emerald-200'
+                    : (activeTab === 'admin' ? 'text-emerald-600' : 'text-emerald-600 hover:text-emerald-700')
+                }`}
+              >
+                🛠️ Kelola Harga
+                {activeTab === 'admin' && (
+                  <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-emerald-600 rounded-full"></span>
+                )}
+              </button>
+            )}
           </div>
 
           {/* Mobile Options Dropdown Navigation with Premium Motion Animation */}
@@ -1073,6 +1368,7 @@ export default function App() {
                 {activeTab === 'galeri' && 'Discover'}
                 {activeTab === 'planner' && 'Tour Package'}
                 {activeTab === 'ulasan' && 'Review'}
+                {activeTab === 'admin' && 'Kelola Harga'}
               </span>
               <svg 
                 className={`w-3 h-3 transition-transform duration-300 ${isMobileMenuOpen ? 'rotate-180' : ''} ${activeTab === 'beranda' ? 'text-white/75' : 'text-slate-500'}`} 
@@ -1105,6 +1401,7 @@ export default function App() {
                       { id: 'galeri', label: 'Discover', icon: '🏝️' },
                       { id: 'planner', label: 'Tour Package', icon: '✨' },
                       { id: 'ulasan', label: 'Review', icon: '💬' },
+                      ...(isAdmin ? [{ id: 'admin', label: 'Kelola Harga', icon: '🛠️' }] : [])
                     ].map((opt) => (
                       <button
                         key={opt.id}
@@ -1122,6 +1419,22 @@ export default function App() {
                         <span>{opt.label}</span>
                       </button>
                     ))}
+                    {isAdmin && (
+                      <div className="border-t border-slate-100 mt-1 pt-1 opacity-95">
+                        <button
+                          onClick={() => {
+                            setIsMobileMenuOpen(false);
+                            if (confirm('Keluar dari mode Administrator?')) {
+                              handleAdminLogout();
+                            }
+                          }}
+                          className="w-full text-left px-4 py-2.5 text-xs font-black text-rose-600 hover:bg-rose-50 transition-all flex items-center gap-2 cursor-pointer"
+                        >
+                          <span className="text-sm">🚪</span>
+                          <span>Logout Admin</span>
+                        </button>
+                      </div>
+                    )}
                   </motion.div>
                 </>
               )}
@@ -1132,9 +1445,126 @@ export default function App() {
             <button className={`${activeTab === 'beranda' ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-slate-900'} transition-colors cursor-pointer p-1`}>
               <Search className="w-4 h-4" />
             </button>
-            <button className={`${activeTab === 'beranda' ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-slate-900'} transition-colors cursor-pointer p-1`}>
-              <User className="w-4.5 h-4.5" />
-            </button>
+            {isAdmin ? (
+              <div className="relative">
+                <button 
+                  onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white text-[10px] font-black px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shadow-md shadow-emerald-700/10"
+                  title="Menu Administrator"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-200 animate-pulse"></span>
+                  <span>⚙️ ADMIN MENU</span>
+                  <svg 
+                    className={`w-2.5 h-2.5 transition-transform duration-300 ${isAdminDropdownOpen ? 'rotate-180' : ''}`}
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="3" 
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                <AnimatePresence>
+                  {isAdminDropdownOpen && (
+                    <>
+                      {/* Close on outer click overlay */}
+                      <div 
+                        className="fixed inset-0 z-40 bg-transparent" 
+                        onClick={() => setIsAdminDropdownOpen(false)}
+                      />
+                      <motion.div
+                        initial={{ opacity: 0, y: 12, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+                        className="absolute right-0 mt-2.5 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl py-2.5 z-50 overflow-hidden origin-top-right text-slate-800"
+                      >
+                        {/* Dropdown Header */}
+                        <div className="px-4 pb-2 pt-1 border-b border-slate-100 text-left">
+                          <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Sesi Administrator</p>
+                          <p className="text-xs text-slate-800 font-black truncate mt-0.5">admin@jelajahtoba.com</p>
+                        </div>
+
+                        {/* List items */}
+                        <div className="p-1 space-y-0.5">
+                          <button
+                            onClick={() => {
+                              setActiveTab('admin');
+                              setIsAdminDropdownOpen(false);
+                            }}
+                            className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 cursor-pointer ${
+                              activeTab === 'admin'
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                            }`}
+                          >
+                            <span className="text-sm">🛠️</span>
+                            <span>Kelola Harga Stop</span>
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              setActiveTab('galeri');
+                              setIsAdminDropdownOpen(false);
+                            }}
+                            className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 cursor-pointer ${
+                              activeTab === 'galeri'
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                            }`}
+                          >
+                            <span className="text-sm">📸</span>
+                            <span>Kelola Galeri Foto</span>
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              setIsChangePasswordModalOpen(true);
+                              setIsAdminDropdownOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2.5 text-slate-700 hover:bg-slate-50 hover:text-slate-900 cursor-pointer"
+                          >
+                            <span className="text-sm">🔑</span>
+                            <span>Ubah Password</span>
+                          </button>
+                        </div>
+
+                        {/* Divider */}
+                        <div className="h-[1px] bg-slate-150 my-1"></div>
+
+                        {/* Logout menu action */}
+                        <div className="p-1">
+                          <button 
+                            onClick={() => {
+                              setIsAdminDropdownOpen(false);
+                              if (confirm('Keluar dari mode Administrator?')) {
+                                handleAdminLogout();
+                                setActiveTab('beranda');
+                              }
+                            }}
+                            className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-all flex items-center gap-2.5 cursor-pointer"
+                          >
+                            <span className="text-sm">🚪</span>
+                            <span>Logout Admin</span>
+                          </button>
+                        </div>
+
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setIsAdminModalOpen(true)}
+                className={`${activeTab === 'beranda' ? 'text-white/80 hover:text-white' : 'text-slate-600 hover:text-slate-900'} transition-colors cursor-pointer p-1 flex items-center gap-1`}
+                title="Login Administrasi (Username: admin, Password: admin)"
+              >
+                <User className="w-4 h-4" />
+                <span className="text-[10px] uppercase font-bold tracking-wider hidden sm:inline">Admin</span>
+              </button>
+            )}
           </div>
         </div>
       </nav>
@@ -1369,241 +1799,160 @@ export default function App() {
         {activeTab === 'galeri' && (
           <div className="animate-fade-in max-w-6xl mx-auto px-6 py-12">
             <div className="text-center mb-10">
-              <h1 className="text-3xl font-black text-slate-950">Galeri Virtual Wisata Toba</h1>
-              <p className="text-slate-500 text-xs mt-2 max-w-md mx-auto">
+              <div className="flex justify-center items-center gap-2 mb-2">
+                <h1 className="text-3xl font-black text-slate-950">Galeri Virtual Wisata Toba</h1>
+                {isAdmin && (
+                  <span className="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                    Mode Admin Aktif
+                  </span>
+                )}
+              </div>
+              <p className="text-slate-500 text-xs max-w-md mx-auto">
                 Bidikan pesona alam eksotis Danau Toba dari berbagai sudut terbaik. Dapatkan inspirasi foto terbaik untuk sosial media Anda.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
-              <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
-                <div className="overflow-hidden aspect-video relative">
-                  <img
-                    src="https://images.unsplash.com/photo-1642762428067-7ef09dee28f7?q=80&w=1170&auto=format&fit=crop"
-                    alt="Samosir"
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-extrabold text-slate-800 text-sm">Pesona Budaya Pulau Samosir</h3>
-                  <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
-                    Terletak tepat di tengah Danau Toba, pulau ini menyajikan wisata budaya luhur suku Batak Toba dan makam batu kuno raja-raja Batak.
-                  </p>
-                </div>
-              </div>
+              {/* ADMIN PANEL FOR UPLOADING */}
+              {isAdmin && (
+                <div className="bg-emerald-50/25 rounded-2xl border-2 border-dashed border-emerald-300 p-6 flex flex-col justify-between h-full bg-white/60 backdrop-blur-xs shadow-xs min-h-[340px]">
+                  <div className="text-center pb-2">
+                    <span className="text-2xl">📸</span>
+                    <h3 className="font-extrabold text-slate-800 text-sm mt-1">Tambah Foto Galeri</h3>
+                    <p className="text-[10px] text-slate-500">Unggah foto baru ke galeri untuk dilihat pengunjung.</p>
+                  </div>
+                  <form onSubmit={(e) => {
+                    e.preventDefault();
+                    const form = e.currentTarget;
+                    const titleInput = form.elements.namedItem('galTitle') as HTMLInputElement;
+                    const descInput = form.elements.namedItem('galDesc') as HTMLTextAreaElement;
+                    const urlInput = form.elements.namedItem('galUrl') as HTMLInputElement;
+                    const fileInput = form.elements.namedItem('galFile') as HTMLInputElement;
+                    const trendingInput = form.elements.namedItem('galTrending') as HTMLInputElement;
 
-              <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
-                <div className="overflow-hidden aspect-video relative">
-                  <img
-                    src="https://images.unsplash.com/photo-1713149733386-9565729633ef?q=80&w=1631&auto=format&fit=crop"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
-                    referrerPolicy="no-referrer"
-                    alt="Parapat"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-extrabold text-slate-800 text-sm">Pelabuhan Ajibata & Parapat</h3>
-                  <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
-                    Titik awal penyeberangan kapal wisata legendaris menuju pulau Samosir, dikelilingi perbukitan pinus hijau yang menyejukkan.
-                  </p>
-                </div>
-              </div>
+                    let src = urlInput ? urlInput.value.trim() : '';
+                    const title = titleInput ? titleInput.value.trim() : '';
+                    const desc = descInput ? descInput.value.trim() : '';
+                    const isTrending = trendingInput ? trendingInput.checked : false;
 
-              <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
-                <div className="overflow-hidden aspect-video relative">
-                  <img
-                    src="https://images.unsplash.com/photo-1737549107076-ad49b000761b?q=80&w=1631&auto=format&fit=crop"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
-                    referrerPolicy="no-referrer"
-                    alt="Bobocabin Signature"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-extrabold text-slate-800 text-sm">Glamping di Kaldera Toba</h3>
-                  <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
-                    Bobocabin Signature menawarkan tempat bermalam ramah lingkungan berteknologi tinggi dengan jendela kaca besar super estetik.
-                  </p>
-                </div>
-              </div>
+                    if (!title) {
+                      alert('Harap isi Judul Foto!');
+                      return;
+                    }
 
-              <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
-                <div className="overflow-hidden aspect-video relative">
-                  <img
-                    src="https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?q=80&w=1170&auto=format&fit=crop"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
-                    referrerPolicy="no-referrer"
-                    alt="Toba Resorts"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-extrabold text-slate-800 text-sm">Resort Tepi Danau</h3>
-                  <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
-                    Santai menikmati kopi Sidikalang hangat langsung dari teras privat hotel berbintang yang menghadap langsung ke air danau.
-                  </p>
-                </div>
-              </div>
+                    const addNewItem = (imageUrl: string) => {
+                      const newItem: GalleryItem = {
+                        id: `gal-${Date.now()}`,
+                        src: imageUrl,
+                        alt: title,
+                        title: title,
+                        description: desc,
+                        isTrending: isTrending
+                      };
+                      setGalleryItems(prev => [newItem, ...prev]);
+                      form.reset();
+                      setLocalFilePreview(null);
+                    };
 
-              <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
-                <div className="overflow-hidden aspect-video relative">
-                  <img
-                    src="https://image.danautoba.co.id/2023/08/Cantiknya-Pantai-Batu-Hoda-Samosir-Bikin-Banyak-Orang-Jatuh-Hati.webp"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
-                    referrerPolicy="no-referrer"
-                    alt="Batu Hoda White Sand Beach"
-                  />
+                    if (fileInput && fileInput.files && fileInput.files[0]) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        addNewItem(reader.result as string);
+                      };
+                      reader.readAsDataURL(fileInput.files[0]);
+                    } else if (src) {
+                      addNewItem(src);
+                    } else {
+                      alert('Harap salin URL Gambar atau unggah Berkas Foto lokal!');
+                    }
+                  }} className="space-y-3 text-left flex-1 flex flex-col justify-end">
+                    <div>
+                      <label className="block text-[9px] uppercase font-bold text-slate-500 mb-0.5">Judul Foto</label>
+                      <input name="galTitle" required type="text" className="w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 outline-none focus:border-emerald-500" placeholder="Senja Danau Toba" />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] uppercase font-bold text-slate-500 mb-0.5">Deskripsi</label>
+                      <textarea name="galDesc" rows={2} className="w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 outline-none focus:border-emerald-500 resize-none text-[11px]" placeholder="Cerita singkat foto..." />
+                    </div>
+                    <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-1.5">
+                      <label className="block text-[9px] uppercase font-bold text-slate-500">PILIH METODE UNGGAH:</label>
+                      <div>
+                        <label className="block text-[8px] text-slate-400">1. Alamat (URL) Gambar:</label>
+                        <input name="galUrl" type="url" className="w-full px-2 py-0.5 text-[10px] rounded border border-slate-200 outline-none focus:border-emerald-500" placeholder="https://example.com/foto.jpg" />
+                      </div>
+                      <div>
+                        <div className="flex justify-between items-center">
+                          <label className="block text-[8px] text-slate-400">2. Atau File Gambar Lokal:</label>
+                          {localFilePreview && (
+                            <button type="button" onClick={() => setLocalFilePreview(null)} className="text-[8px] font-bold text-rose-500 hover:underline">Hapus Preview</button>
+                          )}
+                        </div>
+                        <input name="galFile" type="file" accept="image/*" onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setLocalFilePreview(reader.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }} className="w-full text-[9px] text-slate-500 file:mr-2 file:py-0.5 file:px-1.5 file:rounded file:border-0 file:text-[9px] file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer" />
+                        {localFilePreview && (
+                          <div className="mt-1 w-full h-10 bg-slate-50 rounded border border-slate-150 overflow-hidden">
+                            <img src={localFilePreview} className="w-full h-full object-cover" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <input name="galTrending" type="checkbox" id="galTrending" className="rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer" />
+                      <label htmlFor="galTrending" className="text-[10px] font-bold text-slate-600 cursor-pointer">Beri label 🔥 Trending</label>
+                    </div>
+                    <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-1 rounded-lg text-xs font-black transition-all cursor-pointer mt-1">
+                      Unggah Ke Galeri
+                    </button>
+                  </form>
                 </div>
-                <div className="p-4">
-                  <h3 className="font-extrabold text-slate-800 text-sm">Pantai Pasir Putih Batu Hoda</h3>
-                  <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
-                    Destinasi bersantai ramah keluarga dengan banyak wahana bermain anak, pohon kelapa rindang, dan saung beristirahat.
-                  </p>
-                </div>
-              </div>
+              )}
 
-              <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
-                <div className="overflow-hidden aspect-video relative">
-                  <img
-                    src="https://img.idxchannel.com/media/700/images/idx/2024/06/27/damri_danau_toba.jpg"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
-                    referrerPolicy="no-referrer"
-                    alt="Transport Tour"
-                  />
+              {galleryItems.map((item) => (
+                <div key={item.id} className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group relative flex flex-col h-full justify-between">
+                  <div>
+                    <div className="overflow-hidden aspect-video relative bg-slate-100 shrink-0">
+                      <img
+                        src={item.src}
+                        alt={item.alt}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
+                      />
+                      {item.isTrending && (
+                        <div className="absolute top-3 right-3 z-10 bg-rose-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider animate-pulse">
+                          🔥 Trending
+                        </div>
+                      )}
+                      {isAdmin && (
+                        <button
+                          onClick={() => {
+                            if (confirm(`Apakah Anda yakin ingin menghapus "${item.title}" dari galeri?`)) {
+                              setGalleryItems(prev => prev.filter(g => g.id !== item.id));
+                            }
+                          }}
+                          className="absolute top-3 left-3 z-10 bg-rose-600 hover:bg-rose-700 text-white text-[9px] font-bold px-2 py-1 rounded-full shadow-md flex items-center gap-1 transition-all cursor-pointer"
+                        >
+                          Hapus 🗑️
+                        </button>
+                      )}
+                    </div>
+                    <div className="p-4 flex-1">
+                      <h3 className="font-extrabold text-slate-800 text-sm">{item.title}</h3>
+                      <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="p-4">
-                  <h3 className="font-extrabold text-slate-800 text-sm">Transportasi Keliling Samosir</h3>
-                  <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
-                    Keliling pulau vulkanik melewati tebing berkelok dan sawah hijau batak yang terbentang luas bagai permadani alam.
-                  </p>
-                </div>
-              </div>
-
-              {/* TRENDING 1: Air Terjun Sipiso-Piso */}
-              <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group relative">
-                <div className="absolute top-3 right-3 z-10 bg-rose-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider animate-pulse">
-                  🔥 Trending
-                </div>
-                <div className="overflow-hidden aspect-video relative">
-                  <img
-                    src="https://images.unsplash.com/photo-1626696445855-5f1f90db7ae8?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
-                    referrerPolicy="no-referrer"
-                    alt="Air Terjun Sipiso-Piso"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-extrabold text-slate-800 text-sm flex items-center gap-1.5">Air Terjun Sipiso-Piso</h3>
-                  <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
-                    Air terjun dengan pancuran air setinggi 120 meter memotong jurang tebing sempit pinus hijau yang sangat megah dan ikonik dekat Tongging.
-                  </p>
-                </div>
-              </div>
-
-              {/* TRENDING 2: Bukit Sibea-Bea */}
-              <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group relative">
-                <div className="absolute top-3 right-3 z-10 bg-rose-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider animate-pulse">
-                  🔥 Trending
-                </div>
-                <div className="overflow-hidden aspect-video relative">
-                  <img
-                    src="https://woni.sklmb.co/api/media/uploads/e29d565f-51e1-483c-87fc-87b56c4272c4.jpg"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
-                    referrerPolicy="no-referrer"
-                    alt="Bukit Sibea-Bea"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-extrabold text-slate-800 text-sm">Bukit Sibea-Bea & Patung Kristus</h3>
-                  <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
-                    Dikenal dengan jalan kelok ganda berlatar air biru jernih dan patung ikonik baru yang menjulang gagah menawarkan pemandangan magis.
-                  </p>
-                </div>
-              </div>
-
-              {/* TRENDING 3: Bukit Holbung */}
-              <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group relative">
-                <div className="absolute top-3 right-3 z-10 bg-rose-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider animate-pulse">
-                  🔥 Trending
-                </div>
-                <div className="overflow-hidden aspect-video relative">
-                  <img
-                    src="https://images.unsplash.com/photo-1693341195831-742a7b6f11ee?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
-                    referrerPolicy="no-referrer"
-                    alt="Bukit Holbung"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-extrabold text-slate-800 text-sm">Bukit Holbung (Bukit Teletubbies)</h3>
-                  <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
-                    Tebing berumput sabana hijau dengan spot swafoto dan area perkemahan puncak paling tren untuk melihat matahari terbit eksotis.
-                  </p>
-                </div>
-              </div>
-
-              {/* TRENDING 4: Huta Ginjang */}
-              <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group relative">
-                <div className="absolute top-3 right-3 z-10 bg-rose-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider animate-pulse">
-                  🔥 Trending
-                </div>
-                <div className="overflow-hidden aspect-video relative">
-                  <img
-                    src="https://calderatobageopark.org/wp-content/uploads/2025/06/Hutaginjang_5-scaled.jpg"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
-                    referrerPolicy="no-referrer"
-                    alt="Huta Ginjang Viewpoint"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-extrabold text-slate-800 text-sm">Huta Ginjang Skyline View</h3>
-                  <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
-                    Gardu pandang tertinggi di Kabupaten Tapanuli Utara untuk menikmati seluruh bentang alam Danau Toba serta olahraga paralayang.
-                  </p>
-                </div>
-              </div>
-
-              {/* TRENDING 5: Air Terjun Efrata */}
-              <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group relative">
-                <div className="absolute top-3 right-3 z-10 bg-rose-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider animate-pulse">
-                  🔥 Trending
-                </div>
-                <div className="overflow-hidden aspect-video relative">
-                  <img
-                    src="https://dynamic-media-cdn.tripadvisor.com/media/photo-o/0b/15/19/41/efrata-waterfall-samosir.jpg?w=1200&h=-1&s=1"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
-                    referrerPolicy="no-referrer"
-                    alt="Air Terjun Efrata"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-extrabold text-slate-800 text-sm">Air Terjun Efrata</h3>
-                  <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
-                    Aliran air jernih melebar eksotik bagai tirai putih terhampar indah, dikelilingi hijaunya perbukitan desa Harian Boho yang asri.
-                  </p>
-                </div>
-              </div>
-
-              {/* TRENDING 6: Bukit Indah Simarjarunjung */}
-              <div className="bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm group relative">
-                <div className="absolute top-3 right-3 z-10 bg-rose-500 text-white text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider animate-pulse">
-                  🔥 Trending
-                </div>
-                <div className="overflow-hidden aspect-video relative font-sans">
-                  <img
-                    src="https://static.promediateknologi.id/crop/0x235:1080x1072/1200x0/webp/photo/p1/1052/2024/03/27/Snapinstaapp_19984549_114480129187899_4295859502441299968_n_1080-2698099288.jpg"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-300"
-                    referrerPolicy="no-referrer"
-                    alt="Bukit Indah Simarjarunjung"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-extrabold text-slate-800 text-sm">Bukit Indah Simarjarunjung</h3>
-                  <p className="text-slate-500 text-[11px] mt-1 leading-relaxed">
-                    Spot gardu pandang terfavorit dengan berbagai wahana foto, rumah pohon, balon udara, dan ayunan langit dengan latar kaldera megah.
-                  </p>
-                </div>
-              </div>
+              ))}
 
             </div>
           </div>
@@ -2408,6 +2757,218 @@ export default function App() {
           </div>
         )}
 
+        {/* ==================== VIEW: ADMIN PANEL ==================== */}
+        {activeTab === 'admin' && isAdmin && (
+          <div className="animate-fade-in max-w-6xl mx-auto px-6 py-12">
+            <div className="bg-white rounded-3xl p-6 md:p-10 border border-slate-200 shadow-xl">
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-150 pb-6 mb-8">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-3xl">🛠️</span>
+                    <h1 className="text-2xl font-black text-slate-950">Kelola Harga Wisata JelajahTOBA</h1>
+                  </div>
+                  <p className="text-slate-500 text-xs mt-1.5 max-w-xl">
+                    Sesuaikan tiket masuk, konsumsi, transportasi, dan pengeluaran lain. Perubahan langsung disinkronkan secara global dan meralat perhitungan anggaran paket wisata secara presisi.
+                  </p>
+                </div>
+                <div className="flex gap-2 flex-wrap md:flex-nowrap">
+                  <button
+                    onClick={() => setIsChangePasswordModalOpen(true)}
+                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-md shadow-amber-500/10"
+                  >
+                    <span>🔑 Ganti Password Admin</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm('Keluar dari mode Administrator?')) {
+                        handleAdminLogout();
+                      }
+                    }}
+                    className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-md shadow-rose-600/10"
+                  >
+                    <span>🚪 Logout</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm('Apakah Anda yakin ingin mengembalikan semua harga stop ke default bawaan sistem?')) {
+                        saveCustomPrices({});
+                        alert('Semua penyesuaian harga berhasil dikembalikan ke standar awal.');
+                      }
+                    }}
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-250 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
+                  >
+                    Reset Semua ke Standar
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActiveTab('planner');
+                    }}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/10 transition cursor-pointer"
+                  >
+                    Lihat di Smart Planner
+                  </button>
+                </div>
+              </div>
+
+              {/* Stats & Search */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-between items-center mb-6 w-full">
+                <div className="text-xs text-slate-500 font-bold bg-slate-50 border border-slate-150 px-4 py-2 rounded-xl flex items-center gap-2 w-full sm:w-auto">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Perhentian Unik: <span className="text-slate-800 font-black">{getAllPredefinedStops().length}</span>
+                  <span className="text-slate-300">|</span>
+                  Kustom Berubah: <span className="text-emerald-700 font-black">{Object.keys(customStopPrices).length} Lokasi</span>
+                </div>
+                <div className="w-full sm:w-64 relative">
+                  <input
+                    type="text"
+                    placeholder="Cari Lokasi Stop..."
+                    className="w-full pl-8 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:border-emerald-600 text-slate-850"
+                    onChange={(e) => setAdminSearchQuery(e.target.value)}
+                    value={adminSearchQuery}
+                  />
+                  <span className="absolute left-3 top-2.5 text-slate-400">
+                    <Search className="w-3.5 h-3.5" />
+                  </span>
+                </div>
+              </div>
+
+              {/* Stops list row table */}
+              <div className="space-y-4">
+                {getAllPredefinedStops()
+                  .filter(stop => 
+                    stop.name.toLowerCase().includes(adminSearchQuery.toLowerCase()) ||
+                    (stop.description && stop.description.toLowerCase().includes(adminSearchQuery.toLowerCase()))
+                  )
+                  .map((stop) => {
+                    const override = customStopPrices[stop.name] || {};
+                    const currentTicket = override.ticketPrice !== undefined ? override.ticketPrice : (stop.ticketPrice || 0);
+                    const currentMeal = override.mealPrice !== undefined ? override.mealPrice : (stop.mealPrice || 0);
+                    const currentTransport = override.transportPrice !== undefined ? override.transportPrice : (stop.transportPrice || 0);
+                    const currentOther = override.otherPrice !== undefined ? override.otherPrice : (stop.otherPrice || 0);
+                    const hasLocalOverride = Object.keys(override).length > 0;
+
+                    const handleFieldChange = (field: 'ticketPrice' | 'mealPrice' | 'transportPrice' | 'otherPrice', val: number) => {
+                      const updated = { ...customStopPrices };
+                      if (!updated[stop.name]) {
+                        updated[stop.name] = {
+                          ticketPrice: stop.ticketPrice,
+                          mealPrice: stop.mealPrice,
+                          transportPrice: stop.transportPrice,
+                          otherPrice: stop.otherPrice
+                        };
+                      }
+                      updated[stop.name][field] = val;
+                      saveCustomPrices(updated);
+                    };
+
+                    const handleResetItem = () => {
+                      const updated = { ...customStopPrices };
+                      delete updated[stop.name];
+                      saveCustomPrices(updated);
+                    };
+
+                    return (
+                      <div 
+                        key={stop.name} 
+                        className={`p-5 rounded-2xl border transition-all ${
+                          hasLocalOverride 
+                            ? 'bg-emerald-50/15 border-emerald-200 shadow-xs' 
+                            : 'bg-white border-slate-200'
+                        }`}
+                      >
+                        <div className="flex flex-col lg:flex-row justify-between lg:items-center gap-4">
+                          {/* Stop Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-extrabold text-slate-950 text-sm truncate">{stop.name}</h3>
+                              {stop.category && (
+                                <span className="bg-slate-100 text-slate-600 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider">
+                                  {stop.category}
+                                </span>
+                              )}
+                              {hasLocalOverride && (
+                                <span className="bg-amber-100 text-amber-800 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider flex items-center gap-1">
+                                  <span>✍️ Dikustomisasi</span>
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-slate-500 text-[11px] leading-relaxed mt-1 line-clamp-2">
+                              {stop.description || "Tidak ada deskripsi perhentian."}
+                            </p>
+                          </div>
+
+                          {/* Inputs Panel */}
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {/* Ticket Input */}
+                            <div>
+                              <label className="block text-[8px] uppercase font-bold text-slate-400 mb-1">Tiket Masuk (Rp)</label>
+                              <input
+                                type="number"
+                                value={currentTicket === 0 ? '' : currentTicket}
+                                onChange={(e) => handleFieldChange('ticketPrice', Math.max(0, parseInt(e.target.value) || 0))}
+                                className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:border-emerald-600 font-mono font-bold"
+                                placeholder="0"
+                              />
+                            </div>
+
+                            {/* Meal Input */}
+                            <div>
+                              <label className="block text-[8px] uppercase font-bold text-slate-400 mb-1">Konsumsi (Rp)</label>
+                              <input
+                                type="number"
+                                value={currentMeal === 0 ? '' : currentMeal}
+                                onChange={(e) => handleFieldChange('mealPrice', Math.max(0, parseInt(e.target.value) || 0))}
+                                className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:border-emerald-600 font-mono font-bold"
+                                placeholder="0"
+                              />
+                            </div>
+
+                            {/* Transport Input */}
+                            <div>
+                              <label className="block text-[8px] uppercase font-bold text-slate-400 mb-1">Transport (Rp)</label>
+                              <input
+                                type="number"
+                                value={currentTransport === 0 ? '' : currentTransport}
+                                onChange={(e) => handleFieldChange('transportPrice', Math.max(0, parseInt(e.target.value) || 0))}
+                                className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:border-emerald-600 font-mono font-bold"
+                                placeholder="0"
+                              />
+                            </div>
+
+                            {/* Other Input */}
+                            <div>
+                              <label className="block text-[8px] uppercase font-bold text-slate-400 mb-1">Biaya Lainnya (Rp)</label>
+                              <input
+                                type="number"
+                                value={currentOther === 0 ? '' : currentOther}
+                                onChange={(e) => handleFieldChange('otherPrice', Math.max(0, parseInt(e.target.value) || 0))}
+                                className="w-full px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:border-emerald-600 font-mono font-bold"
+                                placeholder="0"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Item specific actions */}
+                          {hasLocalOverride && (
+                            <div className="flex items-center justify-end lg:pl-2 shrink-0">
+                              <button
+                                onClick={handleResetItem}
+                                className="p-1 px-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-[9px] font-bold transition flex items-center gap-1 cursor-pointer"
+                                title="Kembalikan harga stop ini ke aslinya"
+                              >
+                                <span>Reset Asli</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
 
       {/* 3. FOOTER */}
@@ -2622,6 +3183,164 @@ export default function App() {
                 </button>
               </div>
 
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 4. ADMIN LOGIN MODAL */}
+      {isAdminModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in shadow-2xl">
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-sm w-full border border-slate-100 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-500"></div>
+            
+            <button 
+              onClick={() => {
+                setIsAdminModalOpen(false);
+                setAdminLoginError('');
+              }}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="text-center mb-6 pt-2">
+              <span className="text-3xl">⚙️</span>
+              <h3 className="text-xl font-black text-slate-900 mt-2">Admin JelajahTOBA</h3>
+              <p className="text-slate-400 text-xs mt-1">
+                Masuk untuk menyesuaikan tarif dasar dan mengunggah galeri foto wisata.
+              </p>
+            </div>
+
+            <form onSubmit={handleAdminLogin} className="space-y-4 text-left">
+              <div>
+                <label className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1.5">Username</label>
+                <input 
+                  type="text" 
+                  value={adminUsername}
+                  onChange={(e) => setAdminUsername(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-emerald-500 focus:outline-none text-slate-800"
+                  placeholder="admin"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1.5">Password</label>
+                <input 
+                  type="password" 
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-emerald-500 focus:outline-none text-slate-800"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+
+              {adminLoginError && (
+                <p className="text-red-500 text-[10px] font-bold text-center bg-red-50 py-1.5 px-3 rounded-lg border border-red-100">{adminLoginError}</p>
+              )}
+
+              <div className="bg-emerald-50 text-emerald-800 p-3 rounded-xl border border-emerald-100/50 space-y-1 text-[10px] leading-relaxed">
+                <p className="font-extrabold text-emerald-900">💡 Demo Credentials:</p>
+                <p>Username: <code className="font-mono font-bold bg-emerald-100/80 px-1 py-0.5 rounded">admin</code></p>
+                <p>Password: <code className="font-mono font-bold bg-emerald-100/80 px-1 py-0.5 rounded">{storedAdminPassword}</code></p>
+              </div>
+
+              <button 
+                type="submit"
+                className="w-full bg-emerald-800 hover:bg-emerald-950 text-white py-3 rounded-xl text-xs font-black transition-all cursor-pointer shadow-md shadow-emerald-850/15"
+              >
+                Masuk Mode Admin
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 5. ADMIN CHANGE PASSWORD MODAL */}
+      {isChangePasswordModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in shadow-2xl">
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-sm w-full border border-slate-150 shadow-2xl relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-500 via-yellow-500 to-orange-500"></div>
+            
+            <button 
+              onClick={() => {
+                setIsChangePasswordModalOpen(false);
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmNewPassword('');
+                setChangePasswordError('');
+                setChangePasswordSuccess('');
+              }}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="text-center mb-6 pt-2">
+              <span className="text-3xl">🔑</span>
+              <h3 className="text-xl font-black text-slate-900 mt-2">Ganti Password Admin</h3>
+              <p className="text-slate-400 text-xs mt-1">
+                Ubah kunci kata sandi panel administrator Anda.
+              </p>
+            </div>
+
+            <form onSubmit={handleChangePassword} className="space-y-4 text-left">
+              <div>
+                <label className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1.5">Kata Sandi Saat Ini</label>
+                <input 
+                  type="password" 
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-amber-500 focus:outline-none text-slate-850"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1.5">Kata Sandi Baru</label>
+                <input 
+                  type="password" 
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-amber-500 focus:outline-none text-slate-850"
+                  placeholder="Min. 4 Karakter"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-1.5">Konfirmasi Kata Sandi Baru</label>
+                <input 
+                  type="password" 
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-amber-500 focus:outline-none text-slate-850"
+                  placeholder="Ulangi Kata Sandi Baru"
+                  required
+                />
+              </div>
+
+              {changePasswordError && (
+                <p className="text-red-500 text-[10px] font-bold text-center bg-red-50 py-1.5 px-3 rounded-lg border border-red-100">{changePasswordError}</p>
+              )}
+
+              {changePasswordSuccess && (
+                <p className="text-emerald-700 text-[10px] font-bold text-center bg-emerald-50 py-1.5 px-3 rounded-lg border border-emerald-100 animate-pulse">{changePasswordSuccess}</p>
+              )}
+
+              <button 
+                type="submit"
+                className="w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-xl text-xs font-black transition-all cursor-pointer shadow-md shadow-amber-500/15"
+              >
+                Simpan Kata Sandi Baru
+              </button>
             </form>
           </div>
         </div>
